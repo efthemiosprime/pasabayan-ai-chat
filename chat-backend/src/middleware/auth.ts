@@ -10,15 +10,17 @@ declare global {
     interface Request {
       userToken?: string;
       isAdminMode?: boolean;
+      isDeveloperMode?: boolean;
     }
   }
 }
 
 /**
  * Auth middleware - extracts and validates tokens
- * Supports two modes:
+ * Supports three modes:
  * 1. Admin mode: Uses X-Admin-Token header
- * 2. User mode: Uses Authorization header with user's Sanctum token
+ * 2. Developer mode: Uses X-Developer-Token header
+ * 3. User mode: Uses Authorization header with user's Sanctum token
  */
 export function authMiddleware(
   req: Request,
@@ -26,9 +28,26 @@ export function authMiddleware(
   next: NextFunction
 ): void {
   const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN;
+  const DEVELOPER_API_TOKEN = process.env.DEVELOPER_API_TOKEN || ADMIN_API_TOKEN; // Fallback to admin token
   const adminToken = req.headers["x-admin-token"] as string | undefined;
+  const developerToken = req.headers["x-developer-token"] as string | undefined;
   const authHeader = req.headers.authorization;
   const userToken = authHeader?.replace("Bearer ", "");
+
+  // Check for developer mode first
+  if (developerToken) {
+    if (developerToken !== DEVELOPER_API_TOKEN) {
+      res.status(401).json({
+        error: "Invalid developer token",
+        code: "INVALID_DEVELOPER_TOKEN",
+      });
+      return;
+    }
+    req.isDeveloperMode = true;
+    req.isAdminMode = false;
+    next();
+    return;
+  }
 
   // Check for admin mode
   if (adminToken) {
@@ -40,6 +59,7 @@ export function authMiddleware(
       return;
     }
     req.isAdminMode = true;
+    req.isDeveloperMode = false;
     next();
     return;
   }
@@ -48,6 +68,7 @@ export function authMiddleware(
   if (userToken) {
     req.userToken = userToken;
     req.isAdminMode = false;
+    req.isDeveloperMode = false;
     next();
     return;
   }
@@ -55,6 +76,7 @@ export function authMiddleware(
   // No authentication provided - allow guest/demo mode
   // Guest mode has limited access (no user-specific data)
   req.isAdminMode = false;
+  req.isDeveloperMode = false;
   req.userToken = undefined;
   next();
 }

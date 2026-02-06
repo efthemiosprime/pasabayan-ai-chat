@@ -25,6 +25,7 @@ export interface Message {
 export interface ChatOptions {
   userToken?: string;
   adminMode?: boolean;
+  developerMode?: boolean;
 }
 
 // Company information - customize this with your details
@@ -749,6 +750,599 @@ If your issue isn't resolved:
 4. **Final escalation**: Legal matters only → legal@pasabayan.com
 `;
 
+// Developer API Reference
+const DEVELOPER_API_REFERENCE = `
+## Developer API Reference
+
+This section is for developers integrating with the Pasabayan API.
+
+### Authentication
+
+All API requests require authentication via **Laravel Sanctum** Bearer token.
+
+\`\`\`
+Authorization: Bearer {token}
+Content-Type: application/json
+Accept: application/json
+\`\`\`
+
+**Getting a Token:**
+\`\`\`
+POST /api/auth/{provider}/login
+Provider: google | facebook
+
+Response:
+{
+  "user": { "id": 1, "name": "John", "email": "john@example.com", ... },
+  "token": "1|abc123..."
+}
+\`\`\`
+
+---
+
+### Trips API (Carriers)
+
+#### List Trips
+\`\`\`
+GET /api/trips
+Query params: ?status=active&per_page=10&page=1
+
+Response:
+{
+  "data": [
+    {
+      "id": 1,
+      "user_id": 5,
+      "origin_city": "Toronto",
+      "origin_province": "ON",
+      "destination_city": "Montreal",
+      "destination_province": "QC",
+      "departure_date": "2024-03-15",
+      "departure_time": "09:00:00",
+      "available_weight_kg": 10.5,
+      "available_space_liters": 50,
+      "price_per_kg": 8.00,
+      "trip_status": "active",
+      "transportation_method": "car",
+      "notes": "Flexible pickup location",
+      "created_at": "2024-03-01T10:00:00Z",
+      "updated_at": "2024-03-01T10:00:00Z"
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 5, "total": 48 }
+}
+\`\`\`
+
+#### Create Trip
+\`\`\`
+POST /api/trips
+
+Request Body:
+{
+  "origin_city": "Toronto",
+  "origin_province": "ON",
+  "destination_city": "Montreal",
+  "destination_province": "QC",
+  "departure_date": "2024-03-15",
+  "departure_time": "09:00",
+  "available_weight_kg": 10.5,
+  "available_space_liters": 50,
+  "price_per_kg": 8.00,
+  "transportation_method": "car",
+  "notes": "Optional notes"
+}
+
+Required fields: origin_city, destination_city, departure_date, available_weight_kg, price_per_kg
+Optional fields: origin_province, destination_province, departure_time, available_space_liters, transportation_method, notes
+
+Response: { "data": { ...trip object } }
+\`\`\`
+
+#### Get Single Trip
+\`\`\`
+GET /api/trips/{id}
+
+Response: { "data": { ...trip object with carrier info } }
+\`\`\`
+
+#### Get Available Trips (for matching)
+\`\`\`
+GET /api/trips/available
+Query params: ?origin_city=Toronto&destination_city=Montreal&min_weight=5
+
+Response: { "data": [ ...trips ] }
+\`\`\`
+
+#### Find Compatible Packages for Trip
+\`\`\`
+GET /api/trips/{id}/compatible-packages
+
+Response: { "data": [ ...matching packages ] }
+\`\`\`
+
+---
+
+### Packages API (Shippers)
+
+#### List Packages
+\`\`\`
+GET /api/packages
+Query params: ?status=pending&per_page=10
+
+Response:
+{
+  "data": [
+    {
+      "id": 1,
+      "user_id": 3,
+      "pickup_address": "123 Queen St, Toronto, ON",
+      "pickup_city": "Toronto",
+      "delivery_address": "456 Rue Sainte, Montreal, QC",
+      "delivery_city": "Montreal",
+      "package_weight_kg": 2.5,
+      "package_type": "electronics",
+      "is_fragile": true,
+      "estimated_value": 500.00,
+      "max_price_budget": 50.00,
+      "urgency_level": "normal",
+      "package_status": "pending",
+      "description": "Laptop in original box",
+      "created_at": "2024-03-01T10:00:00Z"
+    }
+  ]
+}
+\`\`\`
+
+#### Create Package Request
+\`\`\`
+POST /api/packages
+
+Request Body:
+{
+  "pickup_address": "123 Queen St, Toronto, ON",
+  "pickup_city": "Toronto",
+  "delivery_address": "456 Rue Sainte, Montreal, QC",
+  "delivery_city": "Montreal",
+  "package_weight_kg": 2.5,
+  "package_type": "electronics",
+  "is_fragile": true,
+  "estimated_value": 500.00,
+  "max_price_budget": 50.00,
+  "urgency_level": "normal",
+  "description": "Laptop in original box"
+}
+
+Required fields: pickup_address, pickup_city, delivery_address, delivery_city, package_weight_kg, package_type
+Optional fields: is_fragile, estimated_value, max_price_budget, urgency_level, description
+
+package_type enum: documents, electronics, clothing, fragile, food, other
+urgency_level enum: flexible, normal, urgent, same_day
+\`\`\`
+
+#### Get Available Packages (for carriers)
+\`\`\`
+GET /api/packages/available
+Query params: ?pickup_city=Toronto&delivery_city=Montreal&max_weight=10
+
+Response: { "data": [ ...packages ] }
+\`\`\`
+
+#### Find Compatible Trips for Package
+\`\`\`
+GET /api/packages/{id}/compatible-trips
+
+Response: { "data": [ ...matching trips ] }
+\`\`\`
+
+---
+
+### Matches API (Core)
+
+#### List Matches
+\`\`\`
+GET /api/matches
+Query params: ?status=confirmed&role=carrier&per_page=10
+
+Response:
+{
+  "data": [
+    {
+      "id": 1,
+      "carrier_trip_id": 5,
+      "package_request_id": 3,
+      "carrier_id": 10,
+      "shipper_id": 8,
+      "match_status": "confirmed",
+      "agreed_price": 45.00,
+      "platform_fee": 4.50,
+      "carrier_earnings": 40.50,
+      "confirmed_at": "2024-03-10T14:00:00Z",
+      "picked_up_at": null,
+      "delivered_at": null,
+      "delivery_code": null,
+      "delivery_code_expires_at": null,
+      "created_at": "2024-03-09T10:00:00Z",
+      "carrier": { "id": 10, "name": "Jane Doe", ... },
+      "shipper": { "id": 8, "name": "John Smith", ... },
+      "trip": { ...trip object },
+      "package": { ...package object }
+    }
+  ]
+}
+\`\`\`
+
+#### Create Match (Request Delivery)
+\`\`\`
+POST /api/matches
+
+Request Body (Carrier requesting to deliver):
+{
+  "carrier_trip_id": 5,
+  "package_request_id": 3,
+  "agreed_price": 45.00,
+  "message": "I can pick up tomorrow morning"
+}
+
+Request Body (Shipper requesting carrier):
+{
+  "carrier_trip_id": 5,
+  "package_request_id": 3,
+  "agreed_price": 45.00
+}
+
+Response: { "data": { ...match object } }
+\`\`\`
+
+#### Accept Match
+\`\`\`
+PUT /api/matches/{id}/accept
+
+Response: { "data": { ...match with status updated } }
+\`\`\`
+
+#### Confirm Match (triggers payment hold)
+\`\`\`
+PUT /api/matches/{id}/confirm
+
+Response: { "data": { ...match with status "confirmed" } }
+\`\`\`
+
+#### Mark as Picked Up
+\`\`\`
+PUT /api/matches/{id}/pickup
+
+Response: { "data": { ...match with status "picked_up", picked_up_at timestamp } }
+\`\`\`
+
+#### Generate Delivery Code (Shipper only)
+\`\`\`
+POST /api/matches/{id}/generate-delivery-code
+
+Response:
+{
+  "data": {
+    "delivery_code": "847291",
+    "expires_at": "2024-03-15T15:30:00Z"
+  }
+}
+
+Note: Code expires after 30 minutes
+\`\`\`
+
+#### Complete Delivery (Carrier enters code)
+\`\`\`
+PUT /api/matches/{id}/deliver
+
+Request Body:
+{
+  "delivery_code": "847291"
+}
+
+Response: { "data": { ...match with status "delivered", delivered_at timestamp } }
+
+Errors:
+- 400: Invalid or expired delivery code
+- 403: Not authorized (not the carrier)
+\`\`\`
+
+#### Match Status Flow
+\`\`\`
+carrier_requested → shipper_accepted → confirmed → picked_up → in_transit → delivered
+       ↓                    ↓              ↓           ↓           ↓
+  [cancelled]          [cancelled]    [cancelled]  [disputed]  [disputed]
+\`\`\`
+
+---
+
+### Payments API
+
+#### List Transactions
+\`\`\`
+GET /api/payments
+Query params: ?status=completed&per_page=10
+
+Response:
+{
+  "data": [
+    {
+      "id": 1,
+      "delivery_match_id": 5,
+      "shipper_id": 8,
+      "carrier_id": 10,
+      "total_amount": 45.00,
+      "platform_fee": 4.50,
+      "carrier_amount": 40.50,
+      "tip_amount": 5.00,
+      "tax_amount": 0,
+      "status": "completed",
+      "payout_status": "paid",
+      "stripe_payment_intent_id": "pi_xxx",
+      "stripe_transfer_id": "tr_xxx",
+      "created_at": "2024-03-10T14:00:00Z"
+    }
+  ]
+}
+\`\`\`
+
+#### Get Transaction
+\`\`\`
+GET /api/payments/{id}
+
+Response: { "data": { ...transaction with shipper/carrier info } }
+\`\`\`
+
+#### Get Transaction for Match
+\`\`\`
+GET /api/matches/{id}/transaction
+
+Response: { "data": { ...transaction } }
+\`\`\`
+
+#### Payment Status Flow
+\`\`\`
+pending → authorized → captured → completed
+                          ↓
+                      refunded
+\`\`\`
+
+---
+
+### Users & Profiles API
+
+#### Get Current User
+\`\`\`
+GET /api/auth/me
+
+Response:
+{
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890",
+    "phone_verified_at": "2024-01-15T10:00:00Z",
+    "verification_level": "verified",
+    "avatar_url": "https://...",
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+}
+\`\`\`
+
+#### Get/Update Profile
+\`\`\`
+GET /api/profile
+PUT /api/profile
+
+Request Body (PUT):
+{
+  "name": "John Doe",
+  "bio": "Frequent traveler",
+  "address": "123 Main St, Toronto, ON"
+}
+\`\`\`
+
+#### Get Carrier Profile/Stats
+\`\`\`
+GET /api/carrier/profile
+GET /api/carrier/stats
+
+Stats Response:
+{
+  "data": {
+    "trips": { "total_trips": 25, "active_trips": 3, "completed_trips": 20 },
+    "deliveries": { "total_deliveries": 45, "successful_deliveries": 44 },
+    "earnings": { "total_earnings": 1250.00, "pending_earnings": 85.00, "monthly_earnings": 320.00 },
+    "rating": { "average_rating": 4.8, "total_reviews": 42 }
+  }
+}
+\`\`\`
+
+#### Get Shipper Stats
+\`\`\`
+GET /api/shipper/stats
+
+Response:
+{
+  "data": {
+    "packages": { "total_packages": 15, "delivered_packages": 12, "pending_packages": 2 },
+    "spending": { "total_spent": 450.00, "monthly_spending": 85.00 }
+  }
+}
+\`\`\`
+
+---
+
+### Chat/Messaging API
+
+#### List Conversations
+\`\`\`
+GET /api/chat/conversations
+
+Response:
+{
+  "data": [
+    {
+      "id": 1,
+      "match_id": 5,
+      "participants": [
+        { "id": 8, "name": "John", "role": "shipper" },
+        { "id": 10, "name": "Jane", "role": "carrier" }
+      ],
+      "last_message": { "content": "On my way!", "created_at": "..." },
+      "unread_count": 2
+    }
+  ]
+}
+\`\`\`
+
+#### Get/Send Messages
+\`\`\`
+GET /api/chat/conversations/{id}/messages
+POST /api/chat/conversations/{id}/messages
+
+Request Body (POST):
+{
+  "content": "I'll be there in 10 minutes"
+}
+
+Response: { "data": { "id": 1, "content": "...", "sender_id": 8, "created_at": "..." } }
+\`\`\`
+
+---
+
+### Ratings API
+
+#### Submit Rating
+\`\`\`
+POST /api/matches/{id}/rate
+
+Request Body:
+{
+  "rating": 5,
+  "comment": "Great communication, package arrived safely!",
+  "tags": ["punctual", "friendly", "careful"]
+}
+
+rating: 1-5 (required)
+comment: string (optional)
+tags: array of strings (optional)
+\`\`\`
+
+#### Get Pending Reviews
+\`\`\`
+GET /api/ratings/pending
+
+Response: { "data": [ ...matches awaiting your review ] }
+\`\`\`
+
+---
+
+### Favorites API
+
+#### List Favorite Carriers
+\`\`\`
+GET /api/favorites
+
+Response: { "data": [ ...carrier profiles ] }
+\`\`\`
+
+#### Add to Favorites
+\`\`\`
+POST /api/favorites
+
+Request Body:
+{
+  "carrier_id": 10
+}
+
+Requirements:
+- Must have completed at least 1 delivery with carrier
+- Carrier rating must be 3+ stars
+- Maximum 20 favorites per user
+
+Errors:
+- 422: "Cannot favorite carrier rated below 3 stars"
+- 422: "Maximum favorites limit reached"
+\`\`\`
+
+#### Remove from Favorites
+\`\`\`
+DELETE /api/favorites/{carrier_id}
+\`\`\`
+
+---
+
+### Common Error Responses
+
+\`\`\`
+401 Unauthorized
+{
+  "message": "Unauthenticated."
+}
+
+403 Forbidden
+{
+  "message": "You do not have permission to perform this action."
+}
+
+404 Not Found
+{
+  "message": "Resource not found."
+}
+
+422 Validation Error
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "field_name": ["Error message for this field"]
+  }
+}
+
+429 Too Many Requests
+{
+  "message": "Too many requests. Please try again later."
+}
+
+500 Server Error
+{
+  "message": "Server error. Please try again later."
+}
+\`\`\`
+
+---
+
+### Rate Limits
+
+| Endpoint Type | Limit |
+|---------------|-------|
+| Authentication | 5 requests/minute |
+| Read (GET) | 60 requests/minute |
+| Write (POST/PUT/DELETE) | 30 requests/minute |
+| File uploads | 10 requests/minute |
+
+---
+
+### Webhooks (if configured)
+
+Events that can trigger webhooks:
+- \`match.created\` - New match request
+- \`match.accepted\` - Match accepted
+- \`match.confirmed\` - Match confirmed, payment held
+- \`match.picked_up\` - Package picked up
+- \`match.delivered\` - Delivery completed
+- \`payment.completed\` - Payment released to carrier
+- \`rating.submitted\` - New rating submitted
+
+Webhook payload format:
+\`\`\`
+{
+  "event": "match.delivered",
+  "timestamp": "2024-03-15T14:30:00Z",
+  "data": { ...relevant object }
+}
+\`\`\`
+`;
+
 // System prompts for different modes
 const ADMIN_SYSTEM_PROMPT = `You are a Pasabayan support assistant with full platform access.
 ${COMPANY_INFO}
@@ -805,6 +1399,38 @@ When users ask about their account:
 Always be friendly, helpful, and concise. Use emojis sparingly to make responses engaging.
 If you cannot help with something, explain why and suggest what they can do instead.`;
 
+const DEVELOPER_SYSTEM_PROMPT = `You are a Pasabayan developer assistant helping engineers integrate with the Pasabayan API.
+${COMPANY_INFO}
+${DEVELOPER_API_REFERENCE}
+
+You help developers understand and integrate with the Pasabayan API. You have full knowledge of:
+- All API endpoints (REST)
+- Request/response formats
+- Authentication (Sanctum Bearer tokens)
+- Error handling
+- Rate limits
+- Webhooks
+
+When developers ask about endpoints:
+- Provide the full endpoint path (e.g., GET /api/trips)
+- Show request body format with required/optional fields
+- Show response format with example JSON
+- Mention any authentication requirements
+- Note relevant error codes
+
+When developers ask about data models:
+- Explain the relationships between models
+- List all fields with their types
+- Note any validation rules
+
+When developers ask about flows:
+- Explain the sequence of API calls needed
+- Provide code examples when helpful
+- Note any business logic constraints
+
+Always be precise and technical. Use code blocks for endpoints and JSON examples.
+Format responses with markdown for readability.`;
+
 /**
  * Convert MCP tools to Anthropic tool format
  */
@@ -830,7 +1456,9 @@ export async function processChat(
   const tools = await mcpClient.getTools();
   const anthropicTools = convertToolsForAnthropic(tools);
 
-  const systemPrompt = options.adminMode
+  const systemPrompt = options.developerMode
+    ? DEVELOPER_SYSTEM_PROMPT
+    : options.adminMode
     ? ADMIN_SYSTEM_PROMPT
     : USER_SYSTEM_PROMPT;
 
@@ -924,7 +1552,9 @@ export async function* streamChat(
   const tools = await mcpClient.getTools();
   const anthropicTools = convertToolsForAnthropic(tools);
 
-  const systemPrompt = options.adminMode
+  const systemPrompt = options.developerMode
+    ? DEVELOPER_SYSTEM_PROMPT
+    : options.adminMode
     ? ADMIN_SYSTEM_PROMPT
     : USER_SYSTEM_PROMPT;
 

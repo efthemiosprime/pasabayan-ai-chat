@@ -15,9 +15,16 @@ const conversations = new Map<
   {
     messages: Message[];
     createdAt: Date;
-    mode: "admin" | "user";
+    mode: "admin" | "user" | "developer";
   }
 >();
+
+// Helper to determine mode
+function getMode(req: Request): "admin" | "user" | "developer" {
+  if (req.isDeveloperMode) return "developer";
+  if (req.isAdminMode) return "admin";
+  return "user";
+}
 
 // Clean up old conversations periodically (older than 24 hours)
 setInterval(() => {
@@ -56,7 +63,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       conversation = {
         messages: [],
         createdAt: new Date(),
-        mode: req.isAdminMode ? "admin" : "user",
+        mode: getMode(req),
       };
       conversations.set(convId, conversation);
     }
@@ -71,6 +78,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
     const result = await processChat(conversation.messages, {
       userToken: req.userToken,
       adminMode: req.isAdminMode,
+      developerMode: req.isDeveloperMode,
     });
 
     // Add assistant response
@@ -83,7 +91,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       message: result.response,
       conversationId: convId,
       toolsUsed: result.toolsUsed,
-      mode: req.isAdminMode ? "admin" : "user",
+      mode: getMode(req),
     });
   } catch (error) {
     console.error("Chat error:", error);
@@ -124,7 +132,7 @@ router.post("/stream", authMiddleware, async (req: Request, res: Response) => {
       conversation = {
         messages: [],
         createdAt: new Date(),
-        mode: req.isAdminMode ? "admin" : "user",
+        mode: getMode(req),
       };
       conversations.set(convId, conversation);
     }
@@ -143,6 +151,7 @@ router.post("/stream", authMiddleware, async (req: Request, res: Response) => {
     for await (const chunk of streamChat(conversation.messages, {
       userToken: req.userToken,
       adminMode: req.isAdminMode,
+      developerMode: req.isDeveloperMode,
     })) {
       if (chunk.type === "text") {
         fullResponse += chunk.content;
@@ -226,7 +235,7 @@ router.post("/new", authMiddleware, (req: Request, res: Response) => {
   const conversation = {
     messages: [] as Message[],
     createdAt: new Date(),
-    mode: (req.isAdminMode ? "admin" : "user") as "admin" | "user",
+    mode: getMode(req),
   };
   conversations.set(convId, conversation);
 

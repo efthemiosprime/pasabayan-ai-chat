@@ -124,12 +124,77 @@ const suggestionCategories: SuggestionCategory[] = [
   },
 ];
 
+// Developer-specific question categories
+const developerCategories: SuggestionCategory[] = [
+  {
+    name: 'Trips API',
+    icon: <Truck className="w-4 h-4" />,
+    queries: [
+      'What is the endpoint for listing trips?',
+      'How do I create a trip via API?',
+      'What fields are required to create a trip?',
+      'How do I find compatible packages for a trip?',
+    ],
+  },
+  {
+    name: 'Packages API',
+    icon: <Package className="w-4 h-4" />,
+    queries: [
+      'What is the endpoint for creating a package?',
+      'What are the package_type enum values?',
+      'How do I find compatible trips for a package?',
+      'What fields are required for a package request?',
+    ],
+  },
+  {
+    name: 'Matches API',
+    icon: <MessageCircle className="w-4 h-4" />,
+    queries: [
+      'What is the match status flow?',
+      'How do I create a match via API?',
+      'How does the delivery code verification work?',
+      'What is the endpoint to complete a delivery?',
+    ],
+  },
+  {
+    name: 'Payments API',
+    icon: <BarChart3 className="w-4 h-4" />,
+    queries: [
+      'How does the payment flow work?',
+      'What is the transaction response format?',
+      'How do I get transaction for a match?',
+      'What are the payment status values?',
+    ],
+  },
+  {
+    name: 'Authentication',
+    icon: <Settings className="w-4 h-4" />,
+    queries: [
+      'How does authentication work?',
+      'What headers are required for API calls?',
+      'How do I get a Sanctum token?',
+      'What are the rate limits?',
+    ],
+  },
+  {
+    name: 'Error Handling',
+    icon: <HelpCircle className="w-4 h-4" />,
+    queries: [
+      'What error codes can the API return?',
+      'What does a 422 validation error look like?',
+      'How do I handle rate limiting?',
+      'What is the error response format?',
+    ],
+  },
+];
+
 interface SuggestionsPanelProps {
   onSelectQuery: (query: string) => void;
   isAdmin?: boolean;
+  isDeveloper?: boolean;
 }
 
-export function SuggestionsPanel({ onSelectQuery, isAdmin }: SuggestionsPanelProps) {
+export function SuggestionsPanel({ onSelectQuery, isAdmin, isDeveloper }: SuggestionsPanelProps) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
@@ -137,8 +202,18 @@ export function SuggestionsPanel({ onSelectQuery, isAdmin }: SuggestionsPanelPro
     setExpandedCategory(expandedCategory === name ? null : name);
   };
 
+  // Select categories based on mode
+  const categories = isDeveloper ? developerCategories : suggestionCategories;
+
   // Quick suggestions shown at the top
-  const quickSuggestions = isAdmin
+  const quickSuggestions = isDeveloper
+    ? [
+        'What is the endpoint for listing trips?',
+        'How do I create a match via API?',
+        'What is the match status flow?',
+        'How does authentication work?',
+      ]
+    : isAdmin
     ? [
         'Show platform statistics',
         'Find user by email',
@@ -155,13 +230,15 @@ export function SuggestionsPanel({ onSelectQuery, isAdmin }: SuggestionsPanelPro
   return (
     <div className="flex flex-col items-center justify-center h-full text-center px-4">
       <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
-        <span className="text-3xl">🚚</span>
+        <span className="text-3xl">{isDeveloper ? '🛠️' : '🚚'}</span>
       </div>
       <h2 className="text-xl font-semibold text-gray-700 mb-2">
-        Welcome to Pasabayan Assistant
+        {isDeveloper ? 'Pasabayan Developer Assistant' : 'Welcome to Pasabayan Assistant'}
       </h2>
       <p className="text-gray-500 mb-6 max-w-md">
-        {isAdmin
+        {isDeveloper
+          ? 'Developer mode. Ask about API endpoints, request/response formats, and integration.'
+          : isAdmin
           ? 'You have admin access. Ask about users, matches, transactions, or platform stats.'
           : 'I can help you with trips, packages, deliveries, and more. Try asking:'}
       </p>
@@ -191,7 +268,7 @@ export function SuggestionsPanel({ onSelectQuery, isAdmin }: SuggestionsPanelPro
       {/* Category List */}
       {showAll && (
         <div className="w-full max-w-lg bg-white rounded-xl border border-gray-200 shadow-sm max-h-[50vh] overflow-y-auto text-left">
-          {suggestionCategories.map((category) => (
+          {categories.map((category) => (
             <div key={category.name} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => toggleCategory(category.name)}

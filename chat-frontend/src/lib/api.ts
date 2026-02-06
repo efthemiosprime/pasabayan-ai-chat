@@ -15,7 +15,7 @@ export interface ChatResponse {
   message: string;
   conversationId: string;
   toolsUsed?: string[];
-  mode: 'admin' | 'user';
+  mode: 'admin' | 'user' | 'developer';
 }
 
 /**
@@ -26,6 +26,7 @@ export async function sendMessage(
   options: {
     conversationId?: string;
     adminToken?: string;
+    developerToken?: string;
     userToken?: string;
   } = {}
 ): Promise<ChatResponse> {
@@ -33,7 +34,9 @@ export async function sendMessage(
     'Content-Type': 'application/json',
   };
 
-  if (options.adminToken) {
+  if (options.developerToken) {
+    headers['X-Developer-Token'] = options.developerToken;
+  } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;
@@ -63,16 +66,19 @@ export async function getConversation(
   conversationId: string,
   options: {
     adminToken?: string;
+    developerToken?: string;
     userToken?: string;
   } = {}
 ): Promise<{
   conversationId: string;
   messages: Message[];
-  mode: 'admin' | 'user';
+  mode: 'admin' | 'user' | 'developer';
 }> {
   const headers: Record<string, string> = {};
 
-  if (options.adminToken) {
+  if (options.developerToken) {
+    headers['X-Developer-Token'] = options.developerToken;
+  } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;
@@ -96,17 +102,20 @@ export async function getConversation(
 export async function newConversation(
   options: {
     adminToken?: string;
+    developerToken?: string;
     userToken?: string;
   } = {}
 ): Promise<{
   conversationId: string;
-  mode: 'admin' | 'user';
+  mode: 'admin' | 'user' | 'developer';
 }> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
-  if (options.adminToken) {
+  if (options.developerToken) {
+    headers['X-Developer-Token'] = options.developerToken;
+  } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;
@@ -132,12 +141,15 @@ export async function deleteConversation(
   conversationId: string,
   options: {
     adminToken?: string;
+    developerToken?: string;
     userToken?: string;
   } = {}
 ): Promise<void> {
   const headers: Record<string, string> = {};
 
-  if (options.adminToken) {
+  if (options.developerToken) {
+    headers['X-Developer-Token'] = options.developerToken;
+  } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;

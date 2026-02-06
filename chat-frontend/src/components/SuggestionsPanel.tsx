@@ -190,7 +190,7 @@ export function SuggestionsPanel({ onSelectQuery, isAdmin }: SuggestionsPanelPro
 
       {/* Category List */}
       {showAll && (
-        <div className="w-full max-w-lg bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden text-left">
+        <div className="w-full max-w-lg bg-white rounded-xl border border-gray-200 shadow-sm max-h-[50vh] overflow-y-auto text-left">
           {suggestionCategories.map((category) => (
             <div key={category.name} className="border-b border-gray-100 last:border-0">
               <button

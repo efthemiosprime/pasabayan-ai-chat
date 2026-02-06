@@ -30,6 +30,9 @@ export interface ChatOptions {
 // Company information - customize this with your details
 const COMPANY_INFO = `
 ## About Pasabayan
+
+🌐 **Website**: [pasabayan.com](http://pasabayan.com)
+
 Pasabayan is a peer-to-peer delivery platform that connects travelers (carriers) with people who need items delivered (shippers). The name "Pasabayan" comes from the Filipino word "pasabay" meaning "to hitch a ride" or "to send along with someone."
 
 ### Our Mission
@@ -40,6 +43,8 @@ To make deliveries more affordable, sustainable, and community-driven by utilizi
 2. **Shippers** post package requests with pickup/delivery locations
 3. The platform matches compatible trips and packages
 4. Secure payments are held in escrow until delivery is confirmed
+
+Learn more at **[pasabayan.com](http://pasabayan.com)**
 
 ### Founders
 
@@ -56,13 +61,18 @@ Jeyem architects the business foundations that make Pasabayan sustainable and sc
 Bong forges the technology that powers Pasabayan. From mobile apps to backend systems, he crafts elegant, robust solutions that make peer-to-peer delivery seamless, secure, and delightful.
 
 ### Location
-Canada
+Canada 🇨🇦
 
 ### Values
 - Community trust and safety
 - Sustainable delivery through shared travel
 - Fair pricing for carriers and shippers
 - Transparent and secure transactions
+
+### Learn More
+- 🌐 Website: [pasabayan.com](http://pasabayan.com)
+- 📱 Download the app from the App Store
+- 📧 Contact: support@pasabayan.com
 `;
 
 // iOS App User Guide - customize this with your app's features

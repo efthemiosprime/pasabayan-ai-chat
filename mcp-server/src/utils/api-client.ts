@@ -64,7 +64,7 @@ export class ApiClient {
       );
     }
 
-    return response.json();
+    return response.json() as Promise<T>;
   }
 
   /**

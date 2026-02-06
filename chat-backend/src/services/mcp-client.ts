@@ -41,7 +41,7 @@ export class McpClient {
       throw new Error(`Failed to get tools: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { tools: Tool[] };
     return data.tools;
   }
 
@@ -80,7 +80,7 @@ export class McpClient {
       throw new Error(`Tool execution failed: ${error}`);
     }
 
-    return response.json();
+    return response.json() as Promise<ToolResult>;
   }
 
   /**
@@ -117,7 +117,7 @@ export class McpClient {
       throw new Error(`Batch execution failed: ${error}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { results: ToolResult[] };
     return data.results;
   }
 

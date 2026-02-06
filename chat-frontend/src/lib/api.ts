@@ -2,7 +2,9 @@
  * API client for chat backend
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// In production: empty string = relative URLs going through nginx
+// In development: http://localhost:3001 for direct backend access
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export interface Message {
   role: 'user' | 'assistant';

@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bot, LogIn, Shield } from 'lucide-react';
+import { Bot, LogIn, Shield, Code, User, ChevronDown } from 'lucide-react';
 import { ChatWindow } from '@/components/ChatWindow';
 import { healthCheck } from '@/lib/api';
 
+type AppMode = 'user' | 'admin' | 'developer';
+
 export default function HomePage() {
-  const [adminToken, setAdminToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [mode, setMode] = useState<AppMode>('user');
   const [tokenInput, setTokenInput] = useState('');
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [showModeMenu, setShowModeMenu] = useState(false);
 
   // Check backend health on mount
   useEffect(() => {
@@ -24,16 +28,52 @@ export default function HomePage() {
     checkHealth();
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = (selectedMode: 'admin' | 'developer') => {
     if (tokenInput.trim()) {
-      setAdminToken(tokenInput.trim());
+      setToken(tokenInput.trim());
+      setMode(selectedMode);
       setShowTokenInput(false);
       setTokenInput('');
     }
   };
 
   const handleLogout = () => {
-    setAdminToken(null);
+    setToken(null);
+    setMode('user');
+    setShowModeMenu(false);
+  };
+
+  const handleModeChange = (newMode: AppMode) => {
+    if (newMode === 'user') {
+      handleLogout();
+    } else {
+      setMode(newMode);
+    }
+    setShowModeMenu(false);
+  };
+
+  const getModeIcon = () => {
+    switch (mode) {
+      case 'admin': return <Shield className="w-4 h-4" />;
+      case 'developer': return <Code className="w-4 h-4" />;
+      default: return <User className="w-4 h-4" />;
+    }
+  };
+
+  const getModeLabel = () => {
+    switch (mode) {
+      case 'admin': return 'Admin';
+      case 'developer': return 'Developer';
+      default: return 'User';
+    }
+  };
+
+  const getModeColor = () => {
+    switch (mode) {
+      case 'admin': return 'bg-amber-100 text-amber-800';
+      case 'developer': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   if (isConnected === false) {
@@ -81,47 +121,71 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {adminToken ? (
-            <>
-              <span className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded-full text-sm">
-                <Shield className="w-4 h-4" />
-                Admin
-              </span>
+          {token ? (
+            <div className="relative">
               <button
-                onClick={handleLogout}
-                className="px-3 py-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg text-sm transition-colors"
+                onClick={() => setShowModeMenu(!showModeMenu)}
+                className={`flex items-center gap-2 px-3 py-1.5 ${getModeColor()} rounded-full text-sm`}
               >
-                Logout
+                {getModeIcon()}
+                {getModeLabel()}
+                <ChevronDown className="w-3 h-3" />
               </button>
-            </>
+
+              {showModeMenu && (
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px] z-50">
+                  <button
+                    onClick={() => handleModeChange('admin')}
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'admin' ? 'text-amber-700 bg-amber-50' : 'text-gray-700'}`}
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin Mode
+                  </button>
+                  <button
+                    onClick={() => handleModeChange('developer')}
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'developer' ? 'text-purple-700 bg-purple-50' : 'text-gray-700'}`}
+                  >
+                    <Code className="w-4 h-4" />
+                    Developer Mode
+                  </button>
+                  <div className="border-t border-gray-100 my-1" />
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <button
               onClick={() => setShowTokenInput(true)}
               className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg text-sm transition-colors"
             >
               <LogIn className="w-4 h-4" />
-              Admin Login
+              Login
             </button>
           )}
         </div>
       </header>
 
-      {/* Admin token input modal */}
+      {/* Token input modal */}
       {showTokenInput && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Admin Login
+              Login
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Enter your admin API token to access full platform features.
+              Enter your API token and select a mode.
             </p>
             <input
               type="password"
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              placeholder="Admin API Token"
+              placeholder="API Token"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
               autoFocus
             />
@@ -136,11 +200,20 @@ export default function HomePage() {
                 Cancel
               </button>
               <button
-                onClick={handleLogin}
+                onClick={() => handleLogin('developer')}
                 disabled={!tokenInput.trim()}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
               >
-                Login
+                <Code className="w-4 h-4" />
+                Developer
+              </button>
+              <button
+                onClick={() => handleLogin('admin')}
+                disabled={!tokenInput.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                <Shield className="w-4 h-4" />
+                Admin
               </button>
             </div>
           </div>
@@ -149,7 +222,10 @@ export default function HomePage() {
 
       {/* Chat window */}
       <main className="flex-1 overflow-hidden">
-        <ChatWindow adminToken={adminToken || undefined} />
+        <ChatWindow
+          adminToken={mode === 'admin' ? token || undefined : undefined}
+          developerToken={mode === 'developer' ? token || undefined : undefined}
+        />
       </main>
     </div>
   );

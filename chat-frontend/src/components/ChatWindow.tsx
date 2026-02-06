@@ -18,8 +18,10 @@ export function ChatWindow({ adminToken }: ChatWindowProps) {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -36,6 +38,49 @@ export function ChatWindow({ adminToken }: ChatWindowProps) {
       inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 150)}px`;
     }
   }, [input]);
+
+  // Handle mobile keyboard - adjust layout when keyboard appears
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined' && window.visualViewport) {
+        const viewport = window.visualViewport;
+        const keyboardH = window.innerHeight - viewport.height;
+        setKeyboardHeight(keyboardH > 0 ? keyboardH : 0);
+
+        // Scroll to bottom when keyboard opens
+        if (keyboardH > 0) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }
+      }
+    };
+
+    const viewport = typeof window !== 'undefined' ? window.visualViewport : null;
+
+    if (viewport) {
+      viewport.addEventListener('resize', handleResize);
+      viewport.addEventListener('scroll', handleResize);
+    }
+
+    // Also handle focus events for iOS
+    const handleFocus = () => {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    };
+
+    const textarea = inputRef.current;
+    textarea?.addEventListener('focus', handleFocus);
+
+    return () => {
+      if (viewport) {
+        viewport.removeEventListener('resize', handleResize);
+        viewport.removeEventListener('scroll', handleResize);
+      }
+      textarea?.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -107,7 +152,11 @@ export function ChatWindow({ adminToken }: ChatWindowProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div
+      ref={containerRef}
+      className="flex flex-col h-full chat-container"
+      style={{ paddingBottom: keyboardHeight > 0 ? `${keyboardHeight}px` : undefined }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
         <div className="flex items-center gap-2">
@@ -178,10 +227,10 @@ export function ChatWindow({ adminToken }: ChatWindowProps) {
                     'Show active deliveries',
                     'What are the popular routes?',
                   ] : [
+                    'How does payment work?',
+                    'What\'s the cancellation policy?',
+                    'Is it safe to meet carriers?',
                     'How do I track my delivery?',
-                    'How do I message my carrier?',
-                    'Show my deliveries',
-                    'How do I get a refund?',
                   ]).map((suggestion) => (
                     <button
                       key={suggestion}
@@ -207,7 +256,7 @@ export function ChatWindow({ adminToken }: ChatWindowProps) {
       )}
 
       {/* Input */}
-      <div className="p-4 bg-white border-t">
+      <div className="p-4 bg-white border-t chat-input-wrapper safe-area-bottom">
         <div className="flex items-end gap-3">
           {messages.length > 0 && (
             <button

@@ -320,10 +320,430 @@ A: Yes. We don't share your phone number or exact address with other users. Comm
 - AI assistant: Available anytime
 `;
 
+// Business logic and flow explanations
+const BUSINESS_LOGIC_GUIDE = `
+## How Matching Works
+
+### What is a Match?
+A "match" connects a **carrier's trip** with a **shipper's package request**. It represents an agreement for the carrier to deliver the shipper's package along their travel route.
+
+### Compatibility Criteria
+Trips and packages are matched based on:
+1. **Route overlap** - Package pickup/delivery cities align with trip origin/destination
+2. **Timing** - Trip departure date allows enough time for pickup
+3. **Capacity** - Trip has enough available weight (kg) for the package
+4. **Price fit** - Carrier's price_per_kg fits within shipper's max_price_budget
+
+### Discovery Options
+- **Carrier finds package**: Browse "Find Packages" → filter by route → see compatible requests → send delivery offer
+- **Shipper finds carrier**: Browse "Find Trips" → filter by route/date → see compatible trips → request delivery
+
+### Match Status Flow
+\`\`\`
+[carrier_requested/shipper_requested] → [accepted] → [confirmed] → [picked_up] → [in_transit] → [delivered]
+\`\`\`
+
+| Status | What It Means | Who Acts Next |
+|--------|---------------|---------------|
+| carrier_requested | Carrier offered to deliver | Shipper decides |
+| shipper_requested | Shipper requested carrier | Carrier decides |
+| accepted | Other party agreed | Both confirm details |
+| confirmed | Both committed, payment held | Carrier picks up |
+| picked_up | Carrier has the package | Carrier travels |
+| in_transit | En route to destination | Carrier delivers |
+| delivered | Handoff complete with code | Done! |
+
+## Payment Flow
+
+### How Payments Work (Step-by-Step)
+
+1. **Match Confirmed** → Shipper's payment is charged and held in escrow
+2. **Carrier Picks Up** → Money remains in escrow (protected)
+3. **Carrier Delivers** → Shipper generates a 6-digit delivery code
+4. **Code Entered** → Carrier enters code to confirm handoff
+5. **Payment Released** → Platform takes 10% fee, carrier gets 90%
+6. **Payout** → Funds transfer to carrier's bank (2-3 business days via Stripe)
+
+### Fee Breakdown Example
+| Item | Amount |
+|------|--------|
+| Shipper pays | $100.00 |
+| Platform fee (10%) | -$10.00 |
+| Carrier receives | $90.00 |
+| Optional tip | +100% to carrier |
+
+### Escrow Protection
+- **For Shippers**: Money isn't released until YOU generate the delivery code and carrier enters it
+- **For Carriers**: Payment is guaranteed once delivery is confirmed
+- **Delivery code**: 6 digits, expires after 30 minutes, regenerate if needed
+- **Failed delivery**: Shipper can request refund if package not delivered
+
+### Carrier Payout Requirements
+- Must complete **Stripe Connect onboarding** (one-time setup)
+- Provide bank account details to Stripe
+- Payouts are automatic after each completed delivery
+- View earnings anytime in "My Earnings"
+
+### Refunds & Disputes
+- **Before pickup**: Full refund available if match is cancelled
+- **After pickup**: Contact support for dispute resolution
+- **Damaged items**: Report immediately with photos through the app
+
+## Cancellation Policy
+
+### For Shippers (Cancelling a Package Request)
+
+| When You Cancel | What Happens | Fee |
+|-----------------|--------------|-----|
+| Before any carrier accepts | Full refund, no penalty | Free |
+| After carrier accepts, before confirmation | Full refund | Free |
+| After confirmation, before pickup | Refund minus small admin fee | ~5% |
+| After pickup (package in transit) | Contact support - case by case | Varies |
+
+### For Carriers (Cancelling a Delivery)
+
+| When You Cancel | What Happens | Impact |
+|-----------------|--------------|--------|
+| Before accepting | No impact | None |
+| After accepting, before confirmation | Shipper notified, no penalty | Minor |
+| After confirmation, before pickup | Shipper refunded, warning issued | Moderate |
+| After pickup (you have the package) | MUST return package or deliver | Severe - account review |
+
+### No-Show Policy
+- **Carriers**: Missing 2+ pickups without notice → temporary suspension
+- **Shippers**: Not available for 2+ scheduled pickups → warning, then restrictions
+- Always communicate through in-app chat if plans change!
+
+### How to Cancel
+1. Go to **My Deliveries** → Select the match
+2. Tap **"Cancel Delivery"**
+3. Select a reason (helps us improve)
+4. Confirm cancellation
+5. Refund processed within 3-5 business days
+
+## Safety Guidelines
+
+### For Everyone
+
+#### Before Meeting
+- ✅ Verify the other person's profile (ratings, verification level, reviews)
+- ✅ Communicate only through in-app chat (keeps records)
+- ✅ Share your plans with a friend or family member
+- ✅ Trust your instincts - if something feels off, cancel
+
+#### During Pickup/Delivery
+- ✅ Meet in **public, well-lit places** (coffee shops, malls, gas stations)
+- ✅ Avoid isolated areas or going inside someone's home
+- ✅ Verify the package matches the description
+- ✅ Take photos of the package at pickup and delivery
+- ❌ Never share personal phone numbers or addresses outside the app
+
+### For Shippers
+
+#### Package Preparation
+- ✅ Pack items securely with proper cushioning
+- ✅ Seal packages so tampering is visible
+- ✅ Label fragile items clearly
+- ✅ Declare accurate weight and contents
+- ✅ Don't send prohibited items (see list below)
+
+#### Verification
+- ✅ Check carrier's ratings (aim for 4+ stars)
+- ✅ Prefer verified or premium carriers for valuable items
+- ✅ Ask questions in chat before confirming
+
+### For Carriers
+
+#### Package Acceptance
+- ✅ Ask about contents if description is vague
+- ✅ Refuse suspicious or improperly packaged items
+- ✅ Document any existing damage before accepting
+- ✅ Know the weight/size limits of your vehicle
+
+#### During Transit
+- ✅ Keep packages secure and protected
+- ✅ Don't open or tamper with packages
+- ✅ Update status in the app (helps shipper track)
+- ✅ Communicate delays promptly
+
+### Prohibited Items (Canada)
+❌ Illegal drugs or controlled substances
+❌ Weapons, ammunition, explosives
+❌ Hazardous materials (flammable, corrosive, toxic)
+❌ Perishable food (without proper packaging/cooling)
+❌ Live animals
+❌ Counterfeit goods
+❌ Stolen property
+❌ Items requiring special licenses to transport
+❌ Cash or bearer instruments over $10,000 CAD
+
+**Consequences**: Violations result in immediate account suspension and may be reported to authorities.
+
+### Emergency Contacts
+- **In-app support**: Chat with AI assistant 24/7
+- **Email**: support@pasabayan.com
+- **Emergency**: Call 911 for immediate safety concerns
+- **Report user**: Profile → Report User (for policy violations)
+
+## Pricing Tips
+
+### For Carriers: Setting Competitive Rates
+
+#### Factors to Consider
+1. **Distance**: Longer routes = higher base price
+2. **Fuel costs**: Factor in current gas prices
+3. **Time investment**: Pickup/delivery adds time to your trip
+4. **Package type**: Fragile or special handling = premium
+5. **Competition**: Check what others charge for similar routes
+
+#### Pricing Strategies
+| Strategy | When to Use | Example |
+|----------|-------------|---------|
+| **Per kg rate** | Standard packages | $5-15/kg depending on route |
+| **Flat rate** | Small, light items | $20-50 for documents |
+| **Premium rate** | Fragile, urgent, or valuable | +25-50% above standard |
+
+#### Tips for More Deliveries
+- 📈 Start slightly below market rate to build ratings
+- ⭐ Maintain 4.5+ stars for visibility boost
+- 📅 Post trips 1-2 weeks in advance
+- 🗺️ Popular routes: Toronto↔Montreal, Vancouver↔Calgary, GTA suburbs
+- 💬 Respond to requests quickly (within hours, not days)
+- 📸 Add a friendly profile photo
+
+### For Shippers: Budgeting Your Delivery
+
+#### Typical Price Ranges (Canada, 2024)
+| Route Type | Price Range | Example |
+|------------|-------------|---------|
+| Same city | $15-40 | Toronto to Mississauga |
+| Regional (2-4 hrs) | $30-80 | Toronto to Ottawa |
+| Long distance (4+ hrs) | $50-150 | Toronto to Montreal |
+| Cross-country | $100-300+ | Toronto to Vancouver |
+
+*Prices vary by package weight, urgency, and carrier availability*
+
+#### Money-Saving Tips
+- 💰 Be flexible on pickup/delivery dates
+- 📦 Combine multiple small items into one package
+- 🕐 Book 1-2 weeks ahead (last-minute = premium)
+- ⭐ Consider newer carriers (lower rates, building reputation)
+- 🤝 Build relationships with favorite carriers for repeat discounts
+
+#### When to Pay More
+- 🎁 Valuable items (peace of mind with experienced carrier)
+- ⏰ Urgent deliveries (same-day or next-day)
+- 🥚 Fragile items (experienced handlers)
+- 📅 Holiday seasons (high demand)
+
+### Understanding the Final Cost
+
+\`\`\`
+Your Budget: $100
+├── Carrier receives: $90 (90%)
+├── Platform fee: $10 (10%)
+└── Optional tip: You decide (100% to carrier)
+\`\`\`
+
+**No hidden fees**: The price you agree on is what you pay (plus optional tip).
+
+## Verification Levels & Benefits
+
+### Three Levels of Verification
+
+| Level | How to Get It | Time |
+|-------|---------------|------|
+| **Basic** | Sign up with Google/Facebook | Instant |
+| **Verified** | Verify phone number via SMS OTP | 2 minutes |
+| **Premium** | Submit ID + admin review | 1-3 business days |
+
+### What Each Level Unlocks
+
+| Feature | Basic | Verified | Premium |
+|---------|-------|----------|---------|
+| Browse trips/packages | ✅ | ✅ | ✅ |
+| Send/receive messages | ✅ | ✅ | ✅ |
+| Create package requests | ❌ | ✅ | ✅ |
+| Create carrier trips | ❌ | ✅ | ✅ |
+| Accept delivery requests | ❌ | ✅ | ✅ |
+| Higher visibility in search | ❌ | ✅ | ✅ |
+| Premium badge on profile | ❌ | ❌ | ✅ |
+| Priority customer support | ❌ | ❌ | ✅ |
+| Higher delivery limits | ❌ | ❌ | ✅ |
+
+### How to Get Verified
+
+**Phone Verification (Basic → Verified):**
+1. Go to **Profile → Get Verified**
+2. Enter your phone number
+3. Receive SMS with 6-digit code
+4. Enter code to verify
+5. Instant upgrade to Verified status
+
+**Premium Verification (Verified → Premium):**
+1. Go to **Profile → Get Verified → Premium**
+2. Upload government-issued ID (driver's license, passport, or provincial ID)
+3. Take a selfie for identity match
+4. Submit for review
+5. Admin reviews within 1-3 business days
+6. Get notified when approved
+
+### Why Verification Matters
+- **Trust**: Verified users have proven their identity
+- **Safety**: Reduces fraud and fake accounts
+- **Access**: Required to create trips or packages
+- **Visibility**: Verified/Premium users appear higher in search results
+
+## Ratings & Reviews System
+
+### How Ratings Work
+
+After every completed delivery, both parties can rate each other:
+- **Shippers rate carriers**: Punctuality, communication, package handling
+- **Carriers rate shippers**: Accuracy of package info, punctuality, communication
+
+### Rating Scale
+| Stars | Meaning |
+|-------|---------|
+| ⭐⭐⭐⭐⭐ (5) | Excellent - Would recommend |
+| ⭐⭐⭐⭐ (4) | Good - Minor issues |
+| ⭐⭐⭐ (3) | Okay - Room for improvement |
+| ⭐⭐ (2) | Poor - Significant issues |
+| ⭐ (1) | Terrible - Major problems |
+
+### Impact of Ratings
+
+**For Carriers:**
+| Rating | Impact |
+|--------|--------|
+| 4.5+ stars | 🏆 Featured in search, "Top Carrier" badge |
+| 4.0-4.4 stars | ✅ Good visibility, trusted status |
+| 3.5-3.9 stars | ⚠️ Normal visibility |
+| 3.0-3.4 stars | ⚠️ Reduced visibility, warning issued |
+| Below 3.0 | ❌ Account review, may be suspended |
+
+**For Shippers:**
+| Rating | Impact |
+|--------|--------|
+| 4.0+ stars | Carriers more likely to accept your requests |
+| Below 3.0 | Some carriers may decline your requests |
+
+### Tips for Getting Good Ratings
+
+**For Carriers:**
+- ✅ Communicate proactively about pickup times
+- ✅ Update delivery status in the app
+- ✅ Handle packages with care
+- ✅ Be punctual for pickup and delivery
+- ✅ Be friendly and professional
+
+**For Shippers:**
+- ✅ Describe package accurately (weight, size, contents)
+- ✅ Be available at scheduled pickup time
+- ✅ Respond to messages promptly
+- ✅ Have package ready and properly packed
+- ✅ Generate delivery code promptly on arrival
+
+### Viewing Your Ratings
+- Go to **Profile → My Ratings**
+- See your overall score and recent reviews
+- View individual feedback from deliveries
+
+### Disputing Unfair Ratings
+If you believe a rating is unfair:
+1. Go to **Profile → My Ratings → [Select Rating]**
+2. Tap **"Dispute This Rating"**
+3. Explain why you believe it's unfair
+4. Support team reviews within 3-5 business days
+5. Unfair ratings may be removed
+
+### Favorite Carriers & Ratings
+- You can only add carriers rated **3+ stars** to favorites
+- Maximum **20 favorite carriers** per account
+- Favorites get notified when you post new packages
+
+## Troubleshooting & Support Escalation
+
+### Common Issues & Quick Fixes
+
+**"I can't create a trip/package"**
+→ You need to be **Verified**. Go to Profile → Get Verified → Verify phone number.
+
+**"I can't see carrier location"**
+→ Location is only shared when status is **"Picked Up"** or **"In Transit"**. The carrier must have location permissions enabled.
+
+**"Payment failed"**
+→ Check your payment method in Profile → Payment Methods. Try a different card or contact your bank.
+
+**"Carrier/shipper isn't responding"**
+→ Wait 24 hours, then you can cancel without penalty. Report unresponsive users through their profile.
+
+**"Delivery code isn't working"**
+→ Codes expire after 30 minutes. Generate a new code in the app.
+
+**"I was charged but delivery was cancelled"**
+→ Refunds are automatic and take 3-5 business days to appear.
+
+### When to Contact Human Support
+
+Contact support@pasabayan.com when:
+- 🚨 Safety concern or emergency
+- 💰 Payment dispute over $100
+- 🚫 Account suspended or restricted
+- 📦 Package damaged, lost, or stolen
+- ⚖️ Dispute not resolved through app
+- 🔐 Account security issue (hacked, unauthorized access)
+- 🐛 App bug preventing core functionality
+
+### How to Contact Support
+
+**Option 1: In-App (Fastest)**
+1. Go to **Profile → Help & Support**
+2. Tap **"Contact Support"**
+3. Describe your issue with details
+4. Include match ID, screenshots if relevant
+5. Response within 24 hours (usually faster)
+
+**Option 2: Email**
+- Send to: support@pasabayan.com
+- Include: Your account email, match ID, description
+- Response within 24-48 hours
+
+**Option 3: AI Assistant (Instant)**
+- Use this chat for instant help with most questions
+- Available 24/7
+- Can look up your deliveries and account info
+
+### Information to Include When Contacting Support
+- ✅ Your account email
+- ✅ Match ID (if about a specific delivery)
+- ✅ Date and time of issue
+- ✅ Screenshots showing the problem
+- ✅ Steps you already tried
+- ✅ What outcome you're hoping for
+
+### Support Response Times
+| Issue Type | Expected Response |
+|------------|-------------------|
+| Safety/Emergency | Within 2 hours |
+| Payment disputes | Within 24 hours |
+| Account issues | Within 24 hours |
+| General questions | Within 48 hours |
+| Feature requests | Within 1 week |
+
+### Escalation Path
+If your issue isn't resolved:
+1. **First contact**: AI Assistant or email support
+2. **Not resolved in 48 hours**: Reply to ticket asking for escalation
+3. **Still not resolved**: Email escalations@pasabayan.com with ticket number
+4. **Final escalation**: Legal matters only → legal@pasabayan.com
+`;
+
 // System prompts for different modes
 const ADMIN_SYSTEM_PROMPT = `You are a Pasabayan support assistant with full platform access.
 ${COMPANY_INFO}
 ${APP_USER_GUIDE}
+${BUSINESS_LOGIC_GUIDE}
 
 You help the support team look up users, check delivery statuses, view transactions, and analyze platform metrics.
 You can also help users understand how to use the Pasabayan app.
@@ -352,6 +772,7 @@ If you cannot find information, say so clearly and suggest alternative approache
 const USER_SYSTEM_PROMPT = `You are a friendly Pasabayan assistant helping users with their deliveries.
 ${COMPANY_INFO}
 ${APP_USER_GUIDE}
+${BUSINESS_LOGIC_GUIDE}
 
 You can answer questions about how to use the Pasabayan app, explain features, and help troubleshoot issues.
 You can only access the authenticated user's own data - never try to look up other users.

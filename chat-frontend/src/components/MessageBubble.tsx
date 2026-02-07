@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Bot, User } from 'lucide-react';
 import type { Message } from '@/lib/types';
+import { MermaidDiagram } from './MermaidDiagram';
 
 interface MessageBubbleProps {
   message: Message;
@@ -65,6 +66,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                       </code>
                     );
                   }
+
+                  // Check if this is a mermaid code block
+                  const isMermaid = className === 'language-mermaid';
+                  const codeContent = String(children).replace(/\n$/, '');
+
+                  if (isMermaid) {
+                    return <MermaidDiagram chart={codeContent} />;
+                  }
+
                   // Block code - preserve whitespace for ASCII diagrams
                   return (
                     <code

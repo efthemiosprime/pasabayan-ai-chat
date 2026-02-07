@@ -118,3 +118,41 @@ body {
     min-width: 44px;
   }
 }
+
+/* Mermaid diagram styling */
+.mermaid-diagram {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mermaid diagram text styling */
+.mermaid-diagram .node rect,
+.mermaid-diagram .node circle,
+.mermaid-diagram .node ellipse,
+.mermaid-diagram .node polygon {
+  stroke-width: 2px;
+}
+
+.mermaid-diagram .edgeLabel {
+  background-color: white;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+/* Responsive mermaid diagrams */
+@media (max-width: 768px) {
+  .mermaid-diagram {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mermaid-diagram svg {
+    min-width: 400px;
+  }
+}

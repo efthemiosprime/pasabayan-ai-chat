@@ -1700,6 +1700,429 @@ POST /api/matches
 \`\`\`
 `;
 
+// iOS Data Flow Architecture - MVVM + Functional Programming patterns
+const IOS_DATA_FLOW_ARCHITECTURE = `
+## iOS Data Flow Architecture
+
+**A Comprehensive Guide to MVVM + Functional Programming Data Flow**
+
+### Architecture Overview
+
+The Pasabayan iOS app follows a **MVVM (Model-View-ViewModel)** architecture enhanced with **Functional Programming** principles, creating a unidirectional data flow with immutable state management.
+
+#### Core Architecture Components
+
+\`\`\`
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│    View     │◄───│  ViewModel  │◄───│   Service   │◄───│    Model    │
+│  (SwiftUI)  │    │(State Mgmt) │    │(Business)   │    │(Data Types) │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                   │                   │
+   User Input         State Updates      API Calls         Data Structure
+   Interactions       Pure Functions     Network Layer     Immutable Types
+\`\`\`
+
+#### Key Principles
+
+- **Unidirectional Data Flow**: Data flows in one direction through the architecture
+- **Immutable State**: All state changes create new instances rather than mutating existing ones
+- **Pure Functions**: Business logic functions have no side effects
+- **Feature-based architecture**: Each feature is self-contained
+
+---
+
+### Project Structure
+
+\`\`\`
+Pasabayan/
+├── Features/
+│   ├── Authentication/
+│   │   ├── Models/          # User.swift, AuthResponses.swift
+│   │   ├── ViewModels/      # AuthViewModel.swift
+│   │   ├── Views/           # LoginView.swift, RegisterView.swift
+│   │   └── Services/        # AuthService.swift, AuthValidationService.swift
+│   │
+│   ├── Bookings/
+│   │   ├── Models/          # Booking.swift, MatchingModels.swift
+│   │   ├── ViewModels/      # MatchingViewModel.swift
+│   │   ├── Views/           # BookingDetailsView.swift
+│   │   └── Services/        # BookingsAPIService.swift
+│   │
+│   ├── Packages/
+│   │   ├── Models/          # PackageRequest.swift
+│   │   ├── ViewModels/      # PackageViewModel.swift
+│   │   ├── Views/           # PackageRequestView.swift
+│   │   └── Services/        # PackagesAPIService.swift
+│   │
+│   ├── Trips/
+│   │   ├── Models/          # Trip.swift
+│   │   ├── ViewModels/      # BrowseTripsViewModel.swift
+│   │   ├── Views/           # TripDetailsView.swift
+│   │   └── Services/        # TripsAPIService.swift
+│   │
+│   ├── Payments/
+│   │   ├── Models/          # PaymentModels.swift
+│   │   ├── ViewModels/      # PaymentViewModel.swift
+│   │   ├── Views/           # PaymentView.swift
+│   │   └── Services/        # PaymentService.swift, StripeConnectService.swift
+│   │
+│   ├── Favorites/
+│   │   ├── Models/          # FavoriteCarrier.swift
+│   │   ├── ViewModels/      # FavoritesViewModel.swift
+│   │   ├── Views/           # FavoritesListView.swift
+│   │   └── Services/        # FavoritesAPIService.swift
+│   │
+│   ├── Chat/
+│   │   ├── Models/          # ChatModels.swift
+│   │   ├── ViewModels/      # ChatViewModel.swift
+│   │   ├── Views/           # ChatView.swift
+│   │   └── Services/        # ChatAPIService.swift
+│   │
+│   ├── Profile/
+│   │   ├── ViewModels/      # ProfileViewModel.swift
+│   │   ├── Views/           # ProfileView.swift
+│   │   └── Services/        # ProfileAPIService.swift
+│   │
+│   ├── Verification/
+│   │   ├── Models/          # PhoneVerificationModels.swift
+│   │   ├── ViewModels/      # PhoneVerificationViewModel.swift
+│   │   ├── Views/           # PhoneVerificationFlowView.swift
+│   │   └── Services/        # VerificationAPIService.swift
+│   │
+│   ├── Notifications/
+│   │   ├── Models/          # NotificationModels.swift
+│   │   └── Services/        # NotificationAPIService.swift, NotificationManager.swift
+│   │
+│   └── Ratings/
+│       ├── Models/          # Rating.swift
+│       ├── ViewModels/      # RatingViewModel.swift
+│       └── Services/        # RatingsAPIService.swift
+│
+├── Models/                  # Shared models (APIModels.swift, ValidationResult.swift)
+├── Services/                # Core services (APIService.swift, KeychainHelper.swift)
+└── DesignSystem/            # Design tokens and components
+\`\`\`
+
+---
+
+### Data Flow Patterns
+
+#### Complete Data Flow Cycle
+
+\`\`\`mermaid
+graph TD
+    A[User Interaction] --> B[SwiftUI View]
+    B --> C[ViewModel Action]
+    C --> D[Pure Function Validation]
+    D --> E{Validation Result}
+    E -->|Valid| F[Service API Call]
+    E -->|Invalid| G[Update State with Error]
+    F --> H[Network Request]
+    H --> I[API Response]
+    I --> J[Model Parsing]
+    J --> K[ViewModel State Update]
+    K --> L[SwiftUI View Re-render]
+    G --> L
+
+    style A fill:#e1f5fe
+    style L fill:#c8e6c9
+    style F fill:#fff3e0
+    style K fill:#f3e5f5
+\`\`\`
+
+#### State Update Flow
+
+\`\`\`mermaid
+sequenceDiagram
+    participant U as User
+    participant V as SwiftUI View
+    participant VM as ViewModel
+    participant S as Service
+    participant M as Model
+
+    U->>V: Tap Button / Input Text
+    V->>VM: Call Action Method
+
+    Note over VM: Pure Function Validation
+    VM->>VM: validateInput()
+
+    alt Validation Success
+        VM->>S: API Call Request
+        S->>S: Network Operation
+        S-->>VM: Response Data
+        VM->>M: Parse to Model
+        M-->>VM: Immutable Model Instance
+        VM->>VM: updateState() - Pure Function
+        VM-->>V: @Published State Change
+        V->>V: SwiftUI Re-render
+    else Validation Error
+        VM->>VM: updateState() with Error
+        VM-->>V: @Published Error State
+        V->>V: Show Error UI
+    end
+\`\`\`
+
+---
+
+### State Management
+
+The codebase uses **two ViewModel patterns** depending on complexity needs:
+
+#### Pattern 1: Immutable State Structure (Complex Features)
+
+Used for features with complex state and form handling (e.g., \`AuthViewModel\`):
+
+\`\`\`swift
+@MainActor
+class AuthViewModel: ObservableObject {
+    struct State: Equatable {
+        let isAuthenticated: Bool
+        let currentUser: User?
+        let isLoading: Bool
+        let errorMessage: String?
+        let validationErrors: [String: ValidationResult]
+        let formData: FormData
+
+        static let initial = State(
+            isAuthenticated: false,
+            currentUser: nil,
+            isLoading: false,
+            errorMessage: nil,
+            validationErrors: [:],
+            formData: FormData.initial
+        )
+
+        struct FormData: Equatable {
+            let email: String
+            let password: String
+            let confirmPassword: String
+            let name: String
+            let phone: String
+
+            static let initial = FormData(
+                email: "", password: "", confirmPassword: "", name: "", phone: ""
+            )
+        }
+    }
+
+    @Published private(set) var state = State.initial
+
+    // Pure function for state updates
+    private func updateState(_ transform: (State) -> State) {
+        state = transform(state)
+    }
+}
+\`\`\`
+
+#### Pattern 2: Simple Published Properties (Standard Features)
+
+Used for features with simpler state (e.g., \`MatchingViewModel\`, \`ProfileViewModel\`):
+
+\`\`\`swift
+class MatchingViewModel: ObservableObject {
+    @Published var matches: [DeliveryMatch] = []
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
+    @Published var matchAccepted: Bool = false
+
+    private let apiService: BookingsAPIServicing
+    private var cancellables = Set<AnyCancellable>()
+
+    init(apiService: BookingsAPIServicing = BookingsAPIService.shared) {
+        self.apiService = apiService
+    }
+}
+\`\`\`
+
+#### When to Use Each Pattern
+
+| Pattern | Use When | Examples |
+|---------|----------|----------|
+| Immutable State | Complex forms, validation, nested state | \`AuthViewModel\` |
+| Simple Published | List data, simple loading states | \`MatchingViewModel\`, \`ProfileViewModel\`, \`FavoritesViewModel\` |
+
+---
+
+### Feature-Specific Flows
+
+#### Booking/Matching Flow
+
+\`\`\`mermaid
+stateDiagram-v2
+    [*] --> pending: Match Created
+    pending --> carrier_requested: Carrier Offers
+    pending --> shipper_requested: Shipper Requests
+
+    carrier_requested --> shipper_accepted: Shipper Accepts
+    carrier_requested --> shipper_declined: Shipper Declines
+
+    shipper_requested --> carrier_accepted: Carrier Accepts
+    shipper_requested --> carrier_declined: Carrier Declines
+
+    shipper_accepted --> confirmed: Both Agree + Payment
+    carrier_accepted --> confirmed: Both Agree + Payment
+
+    confirmed --> picked_up: Pickup Code Verified
+    picked_up --> in_transit: Carrier Starts Transit
+    in_transit --> delivered: Delivery Code Verified
+
+    delivered --> [*]: Complete
+    shipper_declined --> [*]: Declined
+    carrier_declined --> [*]: Declined
+\`\`\`
+
+**Key Components:**
+- \`MatchingViewModel\` - Manages match state and API calls
+- \`BookingsAPIService\` - API methods for match operations
+- \`DeliveryMatch\` - Model with computed properties for status logic
+
+#### Payment Flow (Auto-Charge)
+
+\`\`\`mermaid
+sequenceDiagram
+    participant S as Shipper
+    participant VM as PaymentViewModel
+    participant PS as PaymentService
+    participant Stripe as Stripe API
+    participant API as Backend API
+
+    S->>VM: Confirm booking
+    VM->>PS: processAutoCharge(matchId, amount)
+    PS->>API: POST /api/payments/create-intent
+    API-->>PS: PaymentIntent (client_secret)
+    PS->>Stripe: Confirm PaymentIntent
+    Stripe-->>PS: Payment succeeded
+    PS->>API: POST /api/payments/confirm
+    API-->>PS: Transaction record
+    PS-->>VM: Payment complete
+    VM-->>S: Show success, booking confirmed
+\`\`\`
+
+**Key Components:**
+- \`PaymentViewModel\` - Orchestrates payment flow
+- \`PaymentService\` - Stripe SDK integration
+- \`StripeConfigService\` - Publishable key management
+
+---
+
+### API Service Layer Pattern
+
+All feature services extend \`BaseFeatureAPIService\`:
+
+\`\`\`swift
+// Base class provides common functionality
+class BaseFeatureAPIService {
+    let apiService: APIService
+
+    init(apiService: APIService = APIService.shared) {
+        self.apiService = apiService
+    }
+
+    func makeRequest<T: Decodable>(
+        endpoint: String,
+        method: HTTPMethod,
+        body: Encodable? = nil,
+        responseType: T.Type
+    ) -> AnyPublisher<T, APIError>
+}
+
+// Feature service extends base
+class BookingsAPIService: BaseFeatureAPIService {
+    static let shared = BookingsAPIService()
+
+    func getCarrierMatches() -> AnyPublisher<PaginatedResponse<DeliveryMatch>, APIError> {
+        makeRequest(
+            endpoint: "/matches/carrier",
+            method: .GET,
+            responseType: PaginatedResponse<DeliveryMatch>.self
+        )
+    }
+
+    func acceptMatch(id: Int) -> AnyPublisher<DeliveryMatch, APIError> {
+        makeRequest(
+            endpoint: "/matches/\\(id)/accept",
+            method: .PUT,
+            responseType: MatchResponse.self
+        )
+        .map(\\.data)
+        .eraseToAnyPublisher()
+    }
+}
+\`\`\`
+
+---
+
+### Best Practices
+
+#### State Management
+\`\`\`swift
+// ✅ DO: Use immutable state with functional updates
+private func updateState(_ transform: (State) -> State) {
+    state = transform(state)
+}
+
+// ❌ DON'T: Mutate state directly
+state.isLoading = true  // Avoid this
+
+// ✅ DO: Compose validation functions
+let result = emailValidation.combine(with: passwordValidation)
+\`\`\`
+
+#### Component Communication
+\`\`\`swift
+// ✅ DO: Use callbacks for child-to-parent communication
+struct EmailField: View {
+    let value: String
+    let validationResult: ValidationResult?
+    let onChange: (String) -> Void  // Callback
+
+    var body: some View {
+        TextField("Email", text: .constant(value))
+            .onChange(of: value) { newValue in
+                onChange(newValue)  // Pure callback
+            }
+    }
+}
+
+// ✅ DO: Use @StateObject for view model ownership
+struct AuthView: View {
+    @StateObject private var viewModel = AuthViewModel()
+
+    var body: some View {
+        EmailField(
+            value: viewModel.state.formData.email,
+            validationResult: viewModel.state.validationErrors["email"],
+            onChange: viewModel.updateEmail
+        )
+    }
+}
+\`\`\`
+
+---
+
+### Key Files by Feature
+
+| Feature | ViewModel | Service | Key Model |
+|---------|-----------|---------|-----------|
+| Auth | \`AuthViewModel.swift\` | \`AuthService.swift\` | \`User.swift\` |
+| Bookings | \`MatchingViewModel.swift\` | \`BookingsAPIService.swift\` | \`Booking.swift\`, \`DeliveryMatch\` |
+| Packages | \`PackageViewModel.swift\` | \`PackagesAPIService.swift\` | \`PackageRequest.swift\` |
+| Trips | \`BrowseTripsViewModel.swift\` | \`TripsAPIService.swift\` | \`Trip.swift\` |
+| Payments | \`PaymentViewModel.swift\` | \`PaymentService.swift\` | \`PaymentModels.swift\` |
+| Profile | \`ProfileViewModel.swift\` | \`ProfileAPIService.swift\` | \`UserProfile\` |
+| Chat | \`ChatViewModel.swift\` | \`ChatAPIService.swift\` | \`ChatModels.swift\` |
+| Favorites | \`FavoritesViewModel.swift\` | \`FavoritesAPIService.swift\` | \`FavoriteCarrier.swift\` |
+
+### Key Takeaways
+
+1. **Data flows unidirectionally** from Models → Services → ViewModels → Views
+2. **State is always immutable** and updated through pure functions
+3. **Side effects are isolated** to service layers and async functions
+4. **Components communicate** through props down, callbacks up pattern
+5. **Validation is pure** and composable across the application
+6. **Error handling is comprehensive** with user-friendly messages and recovery options
+`;
+
 // QA Testing Guide - Payment flows, test cards, test scenarios
 const QA_TESTING_GUIDE = `
 ## Payment Process Flow & QA Testing Guide
@@ -3185,17 +3608,23 @@ When users ask about their account:
 Always be friendly, helpful, and concise. Use emojis sparingly to make responses engaging.
 If you cannot help with something, explain why and suggest what they can do instead.`;
 
-const DEVELOPER_SYSTEM_PROMPT = `You are a Pasabayan developer assistant helping engineers integrate with the Pasabayan API.
+const DEVELOPER_SYSTEM_PROMPT = `You are a Pasabayan developer assistant helping engineers integrate with the Pasabayan API and understand the iOS app architecture.
 ${COMPANY_INFO}
 ${DEVELOPER_API_REFERENCE}
+${IOS_DATA_FLOW_ARCHITECTURE}
 
-You help developers understand and integrate with the Pasabayan API. You have full knowledge of:
+You help developers understand and integrate with the Pasabayan API and iOS architecture. You have full knowledge of:
 - All API endpoints (REST)
 - Request/response formats
 - Authentication (Sanctum Bearer tokens)
 - Error handling
 - Rate limits
 - Webhooks
+- iOS app architecture (MVVM + Functional Programming)
+- SwiftUI data flow patterns
+- ViewModel state management
+- Service layer patterns
+- Feature-based project structure
 
 When developers ask about endpoints:
 - Provide the full endpoint path (e.g., GET /api/trips)
@@ -3214,8 +3643,20 @@ When developers ask about flows:
 - Provide code examples when helpful
 - Note any business logic constraints
 
-Always be precise and technical. Use code blocks for endpoints and JSON examples.
-Format responses with markdown for readability.`;
+When developers ask about iOS architecture:
+- Explain the MVVM pattern with functional programming
+- Show state management patterns (immutable state vs simple published)
+- Describe the feature-based folder structure
+- Provide Swift code examples
+- Use mermaid diagrams to visualize data flows
+
+When developers ask about specific iOS features:
+- Point to the relevant files (ViewModel, Service, Views)
+- Explain the data flow for that feature
+- Show example implementations
+
+Always be precise and technical. Use code blocks for endpoints, JSON examples, and Swift code.
+Format responses with markdown for readability. Use mermaid diagrams when explaining flows.`;
 
 const QA_SYSTEM_PROMPT = `You are a Pasabayan QA assistant helping testers validate the payment system and app functionality.
 ${COMPANY_INFO}

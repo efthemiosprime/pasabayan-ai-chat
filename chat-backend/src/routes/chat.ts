@@ -15,14 +15,15 @@ const conversations = new Map<
   {
     messages: Message[];
     createdAt: Date;
-    mode: "admin" | "user" | "developer";
+    mode: "admin" | "user" | "developer" | "qa";
   }
 >();
 
 // Helper to determine mode
-function getMode(req: Request): "admin" | "user" | "developer" {
+function getMode(req: Request): "admin" | "user" | "developer" | "qa" {
   if (req.isDeveloperMode) return "developer";
   if (req.isAdminMode) return "admin";
+  if (req.isQAMode) return "qa";
   return "user";
 }
 
@@ -79,6 +80,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       userToken: req.userToken,
       adminMode: req.isAdminMode,
       developerMode: req.isDeveloperMode,
+      qaMode: req.isQAMode,
     });
 
     // Add assistant response
@@ -152,6 +154,7 @@ router.post("/stream", authMiddleware, async (req: Request, res: Response) => {
       userToken: req.userToken,
       adminMode: req.isAdminMode,
       developerMode: req.isDeveloperMode,
+      qaMode: req.isQAMode,
     })) {
       if (chunk.type === "text") {
         fullResponse += chunk.content;

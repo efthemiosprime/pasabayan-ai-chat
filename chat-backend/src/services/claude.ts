@@ -26,6 +26,7 @@ export interface ChatOptions {
   userToken?: string;
   adminMode?: boolean;
   developerMode?: boolean;
+  qaMode?: boolean;
 }
 
 // Company information - customize this with your details
@@ -750,6 +751,240 @@ If your issue isn't resolved:
 4. **Final escalation**: Legal matters only → legal@pasabayan.com
 `;
 
+// Business System Overview - comprehensive platform knowledge
+const BUSINESS_SYSTEM_OVERVIEW = `
+## Pasabayan Business System Overview
+
+### System Purpose
+
+Pasabayan is a peer-to-peer delivery platform that connects people who need packages delivered (Shippers) with people who have available space in their vehicles (Carriers). Think of it as "Uber for packages" where everyday people can earn money by carrying packages during their regular trips.
+
+### User Roles
+
+**Carriers:**
+- People with vehicles who want to earn extra money
+- Create trips, accept package requests, deliver packages
+- Get paid for successful deliveries
+- Requirements: Vehicle, valid driver's license
+
+**Shippers:**
+- People who need packages delivered
+- Create package requests, book trips, track deliveries
+- Pay carriers for delivery services
+- Requirements: Valid account, payment method
+
+### Core System Components
+
+#### 1. Package Requests
+A request created by a shipper who needs something delivered.
+
+**Key Properties:**
+- Package details (title, description, size, weight, fragile status)
+- Location information (pickup address, delivery address, distance)
+- Timing (preferred pickup/delivery date, urgency level)
+- Service type (regular delivery or shopping service)
+- Pricing (maximum price, negotiation allowed)
+
+**Package Status States:**
+| Status | Description |
+|--------|-------------|
+| Open | Available for carriers to see and request |
+| Pending | Waiting for carrier response |
+| Pending Request | Shipper has requested a specific trip |
+| Matched | Carrier has offered to carry the package |
+| Booked | Shipper has accepted a carrier's offer |
+| In Transit | Package is being delivered |
+| Delivered | Successfully delivered to destination |
+| Cancelled | Request cancelled by shipper or carrier |
+
+#### 2. Trips
+A planned journey created by a carrier showing their available capacity.
+
+**Key Properties:**
+- Route information (start/end locations, distance, travel time)
+- Timing (departure/arrival date and time)
+- Capacity (available weight, volume, max dimensions)
+- Pricing (price per kilometer, min/max charge)
+- Vehicle type and special services
+
+**Trip Status States:**
+| Status | Description |
+|--------|-------------|
+| Scheduled | Trip is planned and available |
+| Active | Trip is in progress |
+| Completed | Trip finished successfully |
+| Cancelled | Trip cancelled by carrier |
+
+#### 3. Matches
+The connection between a package request and a trip when they're compatible.
+
+**How Matches Happen:**
+- **Carrier Request:** Carrier sees a package and offers to carry it
+- **Shipper Request:** Shipper finds a trip and requests to book it
+- **Smart Matching:** System automatically suggests compatible options
+
+**Match Status States:**
+| Status | Description | Next Possible States |
+|--------|-------------|---------------------|
+| Pending | Waiting for acceptance | Confirmed, Declined, Cancelled |
+| Carrier Requested | Carrier offered to carry | Shipper Accepted, Shipper Declined |
+| Shipper Requested | Shipper requested trip | Carrier Accepted, Carrier Declined |
+| Carrier Accepted | Carrier accepted request | Confirmed |
+| Shipper Accepted | Shipper accepted offer | Confirmed |
+| Confirmed | Both parties agreed | Picked Up, Cancelled |
+| Picked Up | Package collected | In Transit, Cancelled |
+| In Transit | Package being delivered | Delivered |
+| Delivered | Delivery completed | Final state |
+| Cancelled | Match cancelled | Final state |
+| Shipper Declined | Shipper declined offer | Final state (or Counter-Offer) |
+| Carrier Declined | Carrier declined request | Final state (or Counter-Offer) |
+
+#### 4. Counter-Offer System
+
+When a request is declined, either party can make a counter-offer:
+
+| Scenario | Who Declines | Counter-Offer Option |
+|----------|--------------|---------------------|
+| Shipper requests trip | Carrier declines | Carrier can propose a different price |
+| Carrier offers to carry | Shipper declines | Shipper can propose a different price |
+
+**Counter-Offer Flow:**
+1. User declines a request/offer
+2. System prompts: "Would you like to make a counter-offer?"
+3. User enters new price and optional message
+4. Other party receives notification with new price
+5. Other party can: Accept, Decline, or Counter-Offer back
+
+**Example Negotiation:**
+- Round 1: Shipper offers $50
+- Round 2: Carrier counters with $70
+- Round 3: Shipper counters with $60
+- Round 4: Carrier accepts $60 → Booking proceeds
+
+#### 5. Ratings & Reviews
+Feedback system where users rate each other after completed deliveries.
+
+**Rating Components:**
+- Star Rating: 1-5 stars (1 = poor, 5 = excellent)
+- Written Review: Optional text feedback
+- Quick Tags: Punctual, Professional, Careful handling, Good communication, Would recommend
+
+**Rating Categories:**
+- Overall Experience
+- Carrier Performance / Package Accuracy
+- Communication
+- Timeliness
+
+#### 6. Chat System
+Real-time messaging between shippers and carriers.
+
+**Features:**
+- Text messages and photo sharing
+- Status updates (automatic notifications)
+- File sharing (documents, receipts)
+- Real-time delivery with read receipts
+- Complete message history
+
+**Triggers:**
+- Automatically created when a match is confirmed
+- Used for coordination and updates
+- Continues until delivery is complete
+
+#### 7. Payment System
+Secure payment processing for delivery fees.
+
+**Payment Flow:**
+1. Agreed Price: Set when match is confirmed
+2. Auto-Charge: Payment is automatically charged when shipper confirms booking
+3. Carrier Payout: Carrier receives payment after successful delivery (via Stripe Connect)
+
+**Payment Methods:**
+- Credit/debit cards (Visa, Mastercard, Amex)
+- Digital wallets (Apple Pay, Google Pay)
+
+**Payment States:**
+| Status | Description |
+|--------|-------------|
+| Pending | Payment being processed |
+| Processing | Payment is being verified |
+| Completed | Payment successful, funds transferred |
+| Failed | Payment declined or error |
+| Refunded | Payment returned to shipper |
+| Disputed | Payment under review |
+| Cancelled | Payment cancelled before completion |
+
+#### 8. User Profiles
+Account information and preferences.
+
+**Verification Levels:**
+| Level | Description | Requirements |
+|-------|-------------|--------------|
+| Incomplete | Profile setup not finished | Basic info required |
+| Basic | Basic profile provided | Email verification |
+| Verified | Identity and phone verified | Phone + basic ID |
+| Premium | Enhanced verification | Full ID + background check |
+
+#### 9. Vehicle Information (Carriers Only)
+Vehicle details including make/model, capacity, special features, insurance, and documentation.
+
+**Vehicle States:**
+| Status | Description |
+|--------|-------------|
+| Pending | Awaiting verification |
+| Verified | Approved for service |
+| Rejected | Needs correction |
+| Expired | Documents expired |
+| Suspended | Temporarily suspended |
+
+### Verification System
+
+**Pickup Verification:**
+- Purpose: Ensure carrier picks up from correct shipper
+- Process: Shipper generates 6-digit code, carrier enters to confirm
+- Security: Code expires after 15 minutes
+- Result: Status changes to "Picked Up"
+
+**Delivery Verification:**
+- Purpose: Ensure package delivered to correct recipient
+- Process: Recipient generates 6-digit code, carrier enters to confirm
+- Security: Code expires after 15 minutes
+- Result: Status changes to "Delivered"
+
+### Carrier Payout System (Stripe Connect)
+
+**First-Time Setup:**
+1. Go to Profile → Payout Setup
+2. Tap "Set Up Payouts"
+3. Complete Stripe Express onboarding (identity, bank account, tax info)
+4. Return to app with "Payouts Enabled" status
+
+**Earning & Payout Cycle:**
+1. Carrier completes delivery
+2. Earnings added to Stripe balance
+3. Automatic payout to bank (daily/weekly)
+4. Money arrives in 2-3 business days
+
+### Business Value
+
+**For Shippers:**
+- Cost effective (often cheaper than traditional couriers)
+- Flexible delivery times
+- Real-time tracking
+- Door-to-door service with verification
+
+**For Carriers:**
+- Extra income during regular trips
+- Flexible schedule
+- No long-term contracts
+- Help neighbors while earning
+
+### Contact & Support
+
+- **In-App Support:** Help center within the app
+- **Email:** support@pasabayan.com
+- **FAQ:** Comprehensive help articles available
+`;
+
 // Developer API Reference
 const DEVELOPER_API_REFERENCE = `
 ## Developer API Reference
@@ -1341,6 +1576,1555 @@ Webhook payload format:
   "data": { ...relevant object }
 }
 \`\`\`
+
+---
+
+## Matching Flow API Reference
+
+### Match Statuses
+
+| Status | Description | Who Can Transition |
+|--------|-------------|-------------------|
+| \`shipper_requested\` | Shipper requested carrier's trip | Shipper creates |
+| \`carrier_requested\` | Carrier requested shipper's package | Carrier creates |
+| \`shipper_accepted\` | Shipper accepted carrier's request | Shipper |
+| \`carrier_accepted\` | Carrier accepted shipper's request | Carrier |
+| \`shipper_declined\` | Shipper declined carrier's request | Shipper |
+| \`carrier_declined\` | Carrier declined shipper's request | Carrier |
+| \`confirmed\` | Both agreed, payment captured | System (auto-charge) |
+| \`picked_up\` | Carrier picked up package | Carrier |
+| \`in_transit\` | Package in transit | Carrier |
+| \`delivered\` | Successfully delivered | Carrier |
+| \`cancelled\` | Match was cancelled | Either party |
+
+### Match API Endpoints
+
+| Action | Endpoint | Method | Role | Description |
+|--------|----------|--------|------|-------------|
+| Create Request | \`/api/matches\` | POST | Shipper/Carrier | Create match request |
+| Accept Shipper Request | \`/api/matches/{id}/accept-shipper-request\` | PUT | Carrier | Carrier accepts shipper's request |
+| Decline Shipper Request | \`/api/matches/{id}/decline-shipper-request\` | PUT | Carrier | Carrier declines (can counter-offer) |
+| Accept Carrier Request | \`/api/matches/{id}/accept-carrier-request\` | PUT | Shipper | Shipper accepts carrier's offer |
+| Decline Carrier Request | \`/api/matches/{id}/decline-carrier-request\` | PUT | Shipper | Shipper declines (can counter-offer) |
+| Confirm | \`/api/matches/{id}/confirm\` | PUT | Shipper | Triggers auto-charge payment |
+| Pickup | \`/api/matches/{id}/pickup\` | PUT | Carrier | Mark as picked up |
+| In Transit | \`/api/matches/{id}/transit\` | PUT | Carrier | Mark as in transit |
+| Deliver | \`/api/matches/{id}/deliver\` | PUT | Carrier | Mark as delivered |
+| Cancel | \`/api/matches/{id}\` | DELETE | Either | Cancel match (early stages) |
+
+### Match Fetch Endpoints
+
+| Action | Endpoint | Method | Description |
+|--------|----------|--------|-------------|
+| Get Shipper Matches | \`/api/matches/shipper\` | GET | Matches where user is shipper |
+| Get Carrier Matches | \`/api/matches/carrier\` | GET | Matches where user is carrier |
+| Get Carrier Pending | \`/api/matches/carrier/pending\` | GET | Pending requests for carrier |
+| Get All Matches | \`/api/matches\` | GET | All user's matches |
+
+### Match Creation Request
+
+\`\`\`json
+POST /api/matches
+{
+  "carrier_trip_id": 5,
+  "package_request_id": 3,
+  "agreed_price": 45.00,
+  "message": "I can pick up tomorrow morning"
+}
+\`\`\`
+
+### Counter-Offer Request
+
+\`\`\`json
+POST /api/matches
+{
+  "carrier_trip_id": 5,
+  "package_request_id": 3,
+  "offered_price": 70.00,
+  "message": "Price reflects heavy package",
+  "is_counter_offer": true,
+  "original_price": 50.00
+}
+\`\`\`
+
+### Match Response Object
+
+\`\`\`json
+{
+  "id": 1,
+  "carrier_trip_id": 5,
+  "package_request_id": 3,
+  "carrier_id": 10,
+  "shipper_id": 8,
+  "agreed_price": 45.00,
+  "match_status": "confirmed",
+  "initiated_by": "shipper",
+  "confirmed_at": "2024-03-10T14:00:00Z",
+  "picked_up_at": null,
+  "delivered_at": null,
+  "carrier_message": "On my way!",
+  "shipper_message": "Thanks!",
+  "pickup_confirmation_code": "847291",
+  "delivery_confirmation_code": null,
+  "carrier": { "id": 10, "name": "Jane Doe" },
+  "shipper": { "id": 8, "name": "John Smith" },
+  "carrier_trip": { ...trip object },
+  "package_request": { ...package object },
+  "transaction": { ...transaction object }
+}
+\`\`\`
+
+### Confirm Match Response (with Auto-Charge)
+
+\`\`\`json
+{
+  "message": "Match confirmed successfully",
+  "data": { ...match object },
+  "chat_conversation_id": 123,
+  "auto_charge": {
+    "queued": true,
+    "shipper_has_default_payment_method": true
+  }
+}
+\`\`\`
+
+### Accept Request Response
+
+\`\`\`json
+{
+  "message": "Request accepted",
+  "data": { ...match object },
+  "chat_conversation_id": 123,
+  "auto_confirmed": false
+}
+\`\`\`
+`;
+
+// QA Testing Guide - Payment flows, test cards, test scenarios
+const QA_TESTING_GUIDE = `
+## Payment Process Flow & QA Testing Guide
+
+### Overview
+
+Pasabayan uses Stripe for payment processing with:
+- **Stripe PaymentSheet** - For shipper payments (card, Apple Pay)
+- **Stripe Connect Express** - For carrier payouts
+
+---
+
+### Shipper Payment Flow
+
+\`\`\`
+1. BOOKING CONFIRMED          2. PAYMENT INITIATED
+┌──────────────────┐          ┌──────────────────┐
+│ DeliveryMatch    │          │ POST /payments   │
+│ agreedPrice: $50 │ ───────▶ │ deliveryMatchId  │
+│ status: confirmed│          │ amount: 50.00    │
+└──────────────────┘          │ currency: cad    │
+                              └────────┬─────────┘
+                                       │
+3. PAYMENT SHEET                       ▼
+┌──────────────────┐          4. STRIPE RETURNS
+│ PaymentSheet     │          ┌──────────────────┐
+│ • Apple Pay      │ ◀─────── │ • clientSecret   │
+│ • Saved Cards    │          │ • customerId     │
+└────────┬─────────┘          └──────────────────┘
+         │
+         ▼
+4. PAYMENT RESULT
+┌──────────────────┐
+│ .completed ──────│───▶ Transaction: pending → captured → completed
+│ .cancelled ──────│───▶ Transaction: cancelled
+│ .failed ─────────│───▶ Transaction: failed
+└──────────────────┘
+\`\`\`
+
+### Carrier Payout Flow
+
+\`\`\`
+1. ONBOARDING (One-time)      2. PAYOUT PROCESSING
+┌──────────────────┐          ┌──────────────────┐
+│ POST /stripe/    │          │ After delivery   │
+│ connect/onboard  │          │ completed:       │
+│                  │          │ Auto-transfer    │
+└────────┬─────────┘          └──────────────────┘
+         ▼
+┌──────────────────┐          3. CARRIER DASHBOARD
+│ Stripe Express   │          ┌──────────────────┐
+│ • Identity       │          │ GET /stripe/     │
+│ • Bank Account   │          │ connect/dashboard│
+│ • Tax Info       │          │                  │
+└──────────────────┘          │ View earnings,   │
+                              │ payouts, reports │
+                              └──────────────────┘
+\`\`\`
+
+---
+
+### Transaction Status Flow
+
+| Status | Description | Next States |
+|--------|-------------|-------------|
+| pending | Payment initiated | authorized, cancelled, failed |
+| authorized | Card authorized | captured, cancelled |
+| captured | Funds captured | completed, refunded |
+| completed | Payout sent to carrier | refunded (partial) |
+| refunded | Full/partial refund issued | - |
+| cancelled | Payment cancelled | - |
+| failed | Payment declined | - |
+
+---
+
+### Amount Breakdown Example
+
+\`\`\`
+Agreed Delivery Price:  $50.00 CAD
++ Tip (optional):       $ 5.00 CAD
+─────────────────────────────────
+Shipper Pays:           $55.00 CAD
+
+Platform Fee (10%):     -$ 5.00 CAD
+─────────────────────────────────
+Carrier Receives:       $50.00 CAD ($45 delivery + $5 tip)
+\`\`\`
+
+---
+
+### Test Scenarios
+
+#### 1. Happy Path - Successful Payment
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Create booking with agreed price $50 | DeliveryMatch created, status: confirmed |
+| 2 | Initiate payment | PaymentSheet appears |
+| 3 | Use test card 4242 4242 4242 4242 | Payment succeeds |
+| 4 | Complete payment | Transaction created |
+| 5 | Check transaction status | pending → captured → completed |
+| 6 | View receipt | Receipt shows correct amounts |
+| 7 | Check as Carrier | Transaction visible in history |
+
+#### 2. Payment Failures
+
+| Test Case | Test Card | Expected |
+|-----------|-----------|----------|
+| Declined | 4000000000000002 | "Card declined" |
+| Insufficient Funds | 4000000000009995 | "Insufficient funds" |
+| Invalid CVC | 4000000000000127 | "Invalid CVC" |
+| Processing Error | 4000000000000119 | "Processing error" |
+
+#### 3. Payment Cancellation
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Initiate payment | PaymentSheet appears |
+| 2 | Tap "X" or swipe down | Sheet dismisses |
+| 3 | Check transaction | Status: cancelled or no transaction |
+| 4 | Retry payment | Can initiate new payment |
+
+#### 4. Apple Pay (Device Required)
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Initiate payment on device with Apple Pay | Apple Pay option visible |
+| 2 | Select Apple Pay | Apple Pay sheet appears |
+| 3 | Authenticate with Face ID/Touch ID | Payment processes |
+| 4 | Check transaction | Status: completed |
+| 5 | Check receipt | Shows Apple Pay as method |
+
+#### 5. Saved Payment Methods
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Complete first payment with "Save card" | Card saved |
+| 2 | Start second payment | Saved card appears as option |
+| 3 | Select saved card | Payment uses saved card |
+
+#### 6. Refund Request
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Go to completed transaction | "Request Refund" visible |
+| 2 | Enter reason < 10 chars | Validation error |
+| 3 | Enter reason ≥ 10 chars | Form submits |
+| 4 | Submit refund request | Status: pending |
+| 5 | Admin approves | Status: refunded |
+
+#### 7. Carrier Stripe Connect Onboarding
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Tap "Set up payouts" | Onboarding starts |
+| 2 | Follow Stripe link | Redirects to Stripe Express |
+| 3 | Complete Stripe form | Identity verified |
+| 4 | Return to app | Status: onboardingComplete: true |
+| 5 | Check Connect status | payoutsEnabled: true |
+| 6 | Access Dashboard | Can view earnings |
+
+#### 8. Tip After Delivery
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Complete delivery | "Add Tip" option visible |
+| 2 | Enter tip amount | Tip amount shown |
+| 3 | Confirm tip payment | New transaction for tip |
+| 4 | Check Carrier earnings | Tip included in total |
+
+---
+
+### API Endpoints Reference
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | /payments | Initiate payment |
+| GET | /payments/{id} | Get payment status |
+| POST | /payments/{id}/cancel | Cancel payment |
+| POST | /payments/{id}/refund | Request refund |
+| POST | /payments/{id}/tip | Add tip |
+| POST | /stripe/connect/onboard | Start carrier onboarding |
+| GET | /stripe/connect/status | Check onboarding status |
+| GET | /stripe/connect/dashboard | Get dashboard link |
+| GET | /receipts | List user's receipts |
+| GET | /receipts/{transactionId} | Get single receipt |
+
+---
+
+### Test Cards (Stripe Test Mode)
+
+| Scenario | Card Number | Expiry | CVC |
+|----------|-------------|--------|-----|
+| Success | 4242 4242 4242 4242 | Any future | Any 3 digits |
+| Declined | 4000 0000 0000 0002 | Any future | Any 3 digits |
+| Insufficient Funds | 4000 0000 0000 9995 | Any future | Any 3 digits |
+| 3D Secure Required | 4000 0000 0000 3220 | Any future | Any 3 digits |
+| Lost Card | 4000 0000 0000 9987 | Any future | Any 3 digits |
+| Expired Card | 4000 0000 0000 0069 | Any future | Any 3 digits |
+
+---
+
+### Edge Cases to Test
+
+| Category | Test Case | Expected Behavior |
+|----------|-----------|-------------------|
+| Validation | Amount = $0 | Error: Invalid amount |
+| Validation | Amount > $10,000 | Error or flag for review |
+| Validation | Negative amount | Error: Invalid amount |
+| Network | Payment during poor connection | Retry mechanism, clear error |
+| Network | Timeout (3G simulation) | Loading indicator, timeout handling |
+| Concurrency | Double-tap Pay button | Only one payment created |
+| State | App backgrounded during payment | Resumes correctly |
+| State | App killed during 3DS auth | Payment status checked on return |
+| Auth | Token expires during payment | Refresh and retry |
+
+---
+
+### Debug Logging (Check Xcode Console)
+
+\`\`\`
+🔵 PaymentService: Initiating payment
+   - matchId: 456
+   - amount: 50.00
+   - currency: CAD
+
+🟢 PaymentService: PaymentSheet presented
+
+🟡 PaymentService: Payment completed
+   - status: .completed
+   - paymentIntentId: pi_xxx
+
+🔵 TransactionService: Fetching transaction
+   - transactionId: 123
+   - role: shipper
+\`\`\`
+
+---
+
+### Environment Setup
+
+#### Test Mode Verification
+
+1. Check console for: ⚠️ StripeConfigService: Using SANDBOX/TEST mode
+2. Stripe key should start with \`pk_test_\`
+3. All test card numbers work
+
+#### Live Mode Verification (Production Only)
+
+1. Check console for: 🟢 StripeConfigService: Using LIVE mode
+2. Stripe key should start with \`pk_live_\`
+3. Only real cards work
+
+---
+
+### QA Sign-Off Checklist
+
+**Payment Processing:**
+- [ ] All transaction states transition correctly
+- [ ] Payment amounts calculated accurately
+- [ ] Platform fee deducted correctly (10%)
+- [ ] Tips added to carrier total correctly
+
+**Stripe Integration:**
+- [ ] Stripe config loads (test/live mode)
+- [ ] PaymentSheet displays all options
+- [ ] Apple Pay works (on physical device)
+- [ ] Saved cards work
+- [ ] 3D Secure authentication works
+- [ ] Refund requests submit correctly
+
+**Carrier Payouts:**
+- [ ] Carrier can complete Stripe Connect onboarding
+- [ ] Carrier can access payout dashboard
+
+**UI/UX:**
+- [ ] Receipts generated for all transactions
+- [ ] Transaction history filters work
+- [ ] All error messages are user-friendly
+
+**Error Handling:**
+- [ ] Network failures handled gracefully
+- [ ] No duplicate payments on double-tap
+- [ ] App handles background/foreground during payment
+
+---
+
+## Auto-Charge Payment Flow
+
+### What is Auto-Charge?
+
+When a **Shipper** confirms a match with a carrier, the system automatically charges their default payment method. This eliminates the need for a separate payment step after matching.
+
+### Auto-Charge UI Flow
+
+\`\`\`
+Profile Tab → Payment Methods → Add Card
+    └── Stripe Payment Sheet appears
+        └── Enter card details (4242 4242 4242 4242)
+            └── Card saved as default
+
+Matches Tab → Pending Confirmation booking → Tap "Confirm Booking"
+    │
+    ├── IF has saved card:
+    │   └── Dialog shows: "Card ****1234 will be charged $XX"
+    │       └── Tap "Confirm & Pay" → Card auto-charged
+    │
+    └── IF no saved card:
+        └── Prompt: "Add payment method" → Add card first
+\`\`\`
+
+### Auto-Charge Test Scenarios
+
+| Test | Steps | Expected |
+|------|-------|----------|
+| Happy Path | Has card → Confirm booking | Auto-charged, status "Confirmed & Paid" |
+| No Card | No saved card → Confirm | Prompted to add card first |
+| Declined Card | Use 4000000000000002 → Confirm | "Payment Failed" error, can retry |
+| Different Card | Ready to confirm → "Use different card" | Can select/add another card |
+
+### Auto-Charge Confirmation Sheet States
+
+| State | Icon | What's Shown |
+|-------|------|--------------|
+| Loading | Spinner | "Checking payment method..." |
+| No Card | Orange card (60pt) | "Payment Method Required" + Add button |
+| Ready | Green shield (60pt) | Price + Card info + "Confirm & Pay" |
+| Processing | Spinner | "Confirming match..." |
+| Success | Green check (80pt) | "Match Confirmed!" auto-dismisses |
+| Error | Red triangle (60pt) | Error message + "Try Again" |
+
+---
+
+## Carrier Payout Setup (Stripe Connect)
+
+### Payout Setup UI Flow
+
+\`\`\`
+Profile Tab → Payout Setup
+    │
+    ├── NOT SET UP:
+    │   └── Blue card icon → "Set Up Payouts"
+    │       └── Opens Stripe Express in Safari
+    │           └── Complete: personal info, ID, bank, tax
+    │
+    ├── INCOMPLETE:
+    │   └── Orange clock icon → "Setup Incomplete"
+    │       └── "Continue Setup" resumes where left off
+    │
+    └── COMPLETE:
+        └── Green check → "Payouts Active"
+            └── "View Stripe Dashboard" button
+\`\`\`
+
+### Payout Status States
+
+| Status | Badge | Icon | Meaning |
+|--------|-------|------|---------|
+| null | Gray "Awaiting Delivery" | minus.circle | No payout initiated |
+| pending | Gray "Pending" | hourglass | Queued for processing |
+| processing | Orange "Processing" | clock | Transfer in progress |
+| completed | Green "Paid" | checkmark.circle.fill | Money deposited |
+| failed | Red "Failed" | exclamationmark.circle.fill | Transfer failed |
+
+### Test Bank Account (Stripe Test Mode)
+
+\`\`\`
+Routing Number: 110000000
+Account Number: 000123456789
+SSN (test): 000-00-0000
+\`\`\`
+
+---
+
+## Minimum Delivery Price
+
+### Overview
+
+Minimum delivery price: **$5.00 CAD** (configurable via API)
+
+- **Client-side**: Immediate validation in UI
+- **Server-side**: API returns 422 if price below minimum
+
+### Where Minimum Applies
+
+| Screen | Minimum Applies? | Notes |
+|--------|------------------|-------|
+| Shipper booking trip (MatchCreationView) | YES | Must be ≥ $5.00 |
+| Carrier proposing price (RequestToCarrySheet) | NO | Can propose $0 for negotiation |
+| Trip creation (price per kg) | NO | Rate not total price |
+
+### Test Cases
+
+| Input | Expected |
+|-------|----------|
+| Empty | Error: "Price must be at least CA$5.00" |
+| $0 | Error |
+| $4.99 | Error |
+| $5.00 | Valid ✓ |
+| $15.00 | Valid ✓ |
+
+### API Error Response (if bypassed)
+
+\`\`\`json
+{
+  "success": false,
+  "error": {
+    "code": "PRICE_BELOW_MINIMUM",
+    "message": "Price must be at least $5.00",
+    "details": { "min_price": 5.00, "provided_price": 2.00 }
+  }
+}
+\`\`\`
+Status: 422
+
+---
+
+## Counter-Offer Flow
+
+### How Counter-Offers Work
+
+\`\`\`
+Shipper requests booking at $50
+    │
+    ▼
+Carrier receives request → Taps "Decline"
+    │
+    ▼
+Counter-Offer Prompt appears:
+    ├── Shows declined price (crossed out)
+    ├── Shows carrier's rate reference
+    ├── Enter counter amount (e.g., $70)
+    └── Tap "Send Offer"
+        │
+        ▼
+Shipper receives notification → Can:
+    ├── Accept $70 → Proceeds to Confirm & Pay
+    ├── Decline → Booking cancelled
+    └── Counter back (e.g., $60) → Back to carrier
+\`\`\`
+
+### Counter-Offer Test Scenarios
+
+| Scenario | Expected |
+|----------|----------|
+| Carrier counters $70 | Shipper sees banner, can accept/decline/counter |
+| Shipper accepts | Price updated to $70, auto-charge on confirm |
+| Shipper counters $60 | Carrier notified, status "Awaiting Response" |
+| Final acceptance | Agreed price used for auto-charge |
+
+---
+
+## General App Testing
+
+### Authentication Test Cases
+
+| Test | Steps | Expected |
+|------|-------|----------|
+| Google Sign-In | Tap Google → Select account | Profile populated, dashboard shown |
+| Facebook Sign-In | Tap Facebook → Login | Profile populated |
+| Apple Sign-In | Tap Apple → Face ID | Account created |
+| Logout | Profile → Logout | Returns to login, tokens cleared |
+
+### Phone Verification
+
+| Test | Steps | Expected |
+|------|-------|----------|
+| Send OTP | Enter phone → Send Code | 6-digit code sent via SMS |
+| Verify OTP | Enter code | Auto-verifies, badge shows |
+| Resend OTP | Wait 30s → Resend | New code sent |
+| Invalid OTP | Enter wrong code | "Invalid code" error |
+
+### Carrier Trip Creation
+
+| Field | Validation |
+|-------|------------|
+| Origin/Destination | Required, country picker |
+| Departure date | Must be in future |
+| Available capacity | Positive number (kg) |
+| Price per kg | Positive number |
+
+### Shipper Package Creation
+
+| Field | Validation |
+|-------|------------|
+| Pickup/Delivery address | Required with city |
+| Weight | Positive number (kg) |
+| Package type | documents, electronics, clothing, fragile, food, other |
+| Urgency | flexible, normal, urgent, same_day |
+
+### Match Status Flow
+
+\`\`\`
+carrier_requested/shipper_requested
+    │
+    ▼ (other party accepts)
+accepted
+    │
+    ▼ (both confirm, payment held)
+confirmed
+    │
+    ▼ (carrier picks up)
+picked_up
+    │
+    ▼ (in transit)
+in_transit
+    │
+    ▼ (delivery code entered)
+delivered
+\`\`\`
+
+### Delivery Code Flow
+
+1. Shipper generates 6-digit code in app
+2. Code expires after 30 minutes
+3. Carrier enters code to complete delivery
+4. Payment released to carrier
+
+---
+
+## Match Status Lifecycle (Complete Flow)
+
+\`\`\`
+                    ┌─────────────────────────────────────────────────────────────┐
+                    │                     MATCH LIFECYCLE                          │
+                    └─────────────────────────────────────────────────────────────┘
+                                              │
+                    ┌─────────────────────────┴─────────────────────────┐
+                    │                                                   │
+                    ▼                                                   ▼
+        ┌───────────────────────┐                       ┌───────────────────────┐
+        │  SHIPPER_REQUESTED    │                       │  CARRIER_REQUESTED    │
+        │                       │                       │                       │
+        │  Shipper found a trip │                       │  Carrier found package│
+        │  and requested it     │                       │  and offered to carry │
+        └───────────┬───────────┘                       └───────────┬───────────┘
+                    │                                               │
+          ┌─────────┴─────────┐                           ┌─────────┴─────────┐
+          ▼                   ▼                           ▼                   ▼
+┌──────────────────┐ ┌──────────────────┐    ┌──────────────────┐ ┌──────────────────┐
+│ CARRIER_ACCEPTED │ │ CARRIER_DECLINED │    │ SHIPPER_ACCEPTED │ │ SHIPPER_DECLINED │
+│                  │ │                  │    │                  │ │                  │
+│ Carrier said yes │ │ Carrier said no  │    │ Shipper said yes │ │ Shipper said no  │
+│ to shipper req   │ │ (can counter)    │    │ to carrier offer │ │ (can counter)    │
+└────────┬─────────┘ └──────────────────┘    └────────┬─────────┘ └──────────────────┘
+         │                                            │
+         └──────────────────┬─────────────────────────┘
+                            │
+                            ▼
+                ┌───────────────────────┐
+                │      CONFIRMED        │
+                │                       │
+                │  Both parties agreed  │
+                │  Payment auto-charged │
+                │  Chat room created    │
+                └───────────┬───────────┘
+                            │
+                            ▼
+                ┌───────────────────────┐
+                │      PICKED_UP        │
+                │                       │
+                │  Carrier has package  │
+                │  Location tracking ON │
+                └───────────┬───────────┘
+                            │
+                            ▼
+                ┌───────────────────────┐
+                │      IN_TRANSIT       │
+                │                       │
+                │  En route to dest     │
+                │  Real-time tracking   │
+                └───────────┬───────────┘
+                            │
+                            ▼
+                ┌───────────────────────┐
+                │      DELIVERED        │
+                │                       │
+                │  Code verified ✓      │
+                │  Payment released     │
+                │  Ratings enabled      │
+                └───────────────────────┘
+\`\`\`
+
+---
+
+## User Journey Testing
+
+### Shipper Journey (Step-by-Step)
+
+| Step | Action | API Call | Expected UI State |
+|------|--------|----------|-------------------|
+| 1 | Browse available trips | GET /api/trips/available | Trip list with filters |
+| 2 | View trip details | GET /api/trips/{id} | Trip card with carrier info |
+| 3 | Request to ship | POST /api/matches | MatchCreationView → success |
+| 4 | Wait for carrier response | - | Status: "shipper_requested" |
+| 5 | Carrier accepts | (webhook/poll) | Status: "carrier_accepted" |
+| 6 | Confirm booking | PUT /api/matches/{id}/confirm | Auto-charge triggers |
+| 7 | Track pickup | GET /api/matches/{id} | Status: "confirmed" → "picked_up" |
+| 8 | Track transit | GET /api/matches/{id} | Map shows carrier location |
+| 9 | Generate delivery code | POST /api/matches/{id}/generate-delivery-code | 6-digit code displayed |
+| 10 | Delivery complete | (carrier enters code) | Status: "delivered" |
+| 11 | Rate carrier | POST /api/matches/{id}/rate | Rating submitted |
+
+### Carrier Journey (Step-by-Step)
+
+| Step | Action | API Call | Expected UI State |
+|------|--------|----------|-------------------|
+| 1 | Create trip | POST /api/trips | Trip creation success |
+| 2 | Browse package requests | GET /api/packages/available | Package list with filters |
+| 3 | Offer to deliver | POST /api/matches | Match created |
+| 4 | Wait for shipper response | - | Status: "carrier_requested" |
+| 5 | Shipper accepts | (webhook/poll) | Status: "shipper_accepted" |
+| 6 | Shipper confirms & pays | (webhook/poll) | Status: "confirmed" |
+| 7 | Pick up package | PUT /api/matches/{id}/pickup | Status: "picked_up" |
+| 8 | Start transit | PUT /api/matches/{id}/transit | Status: "in_transit" |
+| 9 | Get delivery code from shipper | (in-person handoff) | - |
+| 10 | Enter delivery code | PUT /api/matches/{id}/deliver | Status: "delivered" |
+| 11 | Rate shipper | POST /api/matches/{id}/rate | Rating submitted |
+| 12 | Check earnings | GET /api/carrier/stats | Payout shows in dashboard |
+
+### Bidirectional Flow Testing
+
+| Scenario | Who Initiates | Who Accepts | Who Confirms |
+|----------|---------------|-------------|--------------|
+| Shipper finds trip | Shipper | Carrier | Shipper |
+| Carrier finds package | Carrier | Shipper | Shipper |
+| Counter-offer (shipper started) | Shipper → Carrier counters | Shipper accepts counter | Shipper |
+| Counter-offer (carrier started) | Carrier → Shipper counters | Carrier accepts counter | Shipper |
+
+---
+
+## Match Status Testing Scenarios
+
+### Status Transition Tests
+
+| From Status | To Status | Action | Who | Test Steps |
+|-------------|-----------|--------|-----|------------|
+| (none) | shipper_requested | Create match | Shipper | POST /api/matches with trip_id, package_id |
+| (none) | carrier_requested | Create match | Carrier | POST /api/matches with trip_id, package_id |
+| shipper_requested | carrier_accepted | Accept | Carrier | PUT /api/matches/{id}/accept-shipper-request |
+| shipper_requested | carrier_declined | Decline | Carrier | PUT /api/matches/{id}/decline-shipper-request |
+| carrier_requested | shipper_accepted | Accept | Shipper | PUT /api/matches/{id}/accept-carrier-request |
+| carrier_requested | shipper_declined | Decline | Shipper | PUT /api/matches/{id}/decline-carrier-request |
+| carrier_accepted | confirmed | Confirm | Shipper | PUT /api/matches/{id}/confirm |
+| shipper_accepted | confirmed | Confirm | Shipper | PUT /api/matches/{id}/confirm |
+| confirmed | picked_up | Pickup | Carrier | PUT /api/matches/{id}/pickup |
+| picked_up | in_transit | Transit | Carrier | PUT /api/matches/{id}/transit |
+| in_transit | delivered | Deliver | Carrier | PUT /api/matches/{id}/deliver + delivery_code |
+
+### Invalid Transition Tests
+
+| Current Status | Invalid Action | Expected Error |
+|----------------|----------------|----------------|
+| shipper_requested | Shipper tries to accept own request | 403 Forbidden |
+| carrier_requested | Carrier tries to accept own request | 403 Forbidden |
+| confirmed | Shipper tries to pickup | 403 Forbidden |
+| picked_up | Shipper tries to mark in_transit | 403 Forbidden |
+| delivered | Any status change | 400 Invalid transition |
+
+### Cancellation Tests
+
+| Status | Can Cancel? | Who | Refund? |
+|--------|-------------|-----|---------|
+| shipper_requested | Yes | Either | N/A (no payment) |
+| carrier_requested | Yes | Either | N/A (no payment) |
+| carrier_accepted | Yes | Either | N/A (no payment) |
+| shipper_accepted | Yes | Either | N/A (no payment) |
+| confirmed | Yes (fees may apply) | Either | Partial or full |
+| picked_up | No (escalate to support) | Support only | Case by case |
+| in_transit | No (escalate to support) | Support only | Case by case |
+| delivered | No | - | - |
+
+---
+
+## Test Users Setup
+
+### Recommended Test Accounts
+
+| Role | Email Pattern | Purpose |
+|------|---------------|---------|
+| Shipper 1 | shipper1@test.pasabayan.com | Happy path testing |
+| Shipper 2 | shipper2@test.pasabayan.com | Counter-offer testing |
+| Carrier 1 | carrier1@test.pasabayan.com | Happy path testing |
+| Carrier 2 | carrier2@test.pasabayan.com | Declined requests |
+| Carrier (no Stripe) | carrier-nostripe@test.pasabayan.com | Payout setup testing |
+
+### Test Data Checklist
+
+- [ ] Shipper has verified phone
+- [ ] Shipper has saved payment method (use 4242 4242 4242 4242)
+- [ ] Carrier has verified phone
+- [ ] Carrier has completed Stripe Connect onboarding
+- [ ] At least 1 active trip (Toronto → Montreal)
+- [ ] At least 1 pending package request (Toronto → Montreal)
+
+---
+
+## Matching Testing Guide - UI Flow
+
+### Overview
+
+This guide covers the complete booking/matching flow between Shippers and Carriers. Follow the screen paths and verify expected results at each step.
+
+**Two-Way Matching System:**
+- **Shipper-Initiated**: Shipper finds a carrier's trip and requests to book space
+- **Carrier-Initiated**: Carrier finds a shipper's package and offers to carry it
+
+Both flows require acceptance from the other party before the booking is confirmed.
+
+---
+
+### Complete Matching Flow Diagram (Shipper-Initiated)
+
+\`\`\`
+1. Home Tab (Shipper Mode)
+       │
+       ▼
+2. Browse Available Trips
+       │
+       ▼
+3. Tap Trip Card
+       │
+       ▼
+4. Trip Details Screen
+       │
+       ▼
+5. Tap "Request to Book"
+       │
+       ▼
+6. Select Package & Set Price ──────────▶ 7. Carrier Receives Notification
+       │                                         │
+       ▼                                         ▼
+8. Request Sent                           9. Matches Tab → See Request
+   "Awaiting Response"                           │
+                                                 ▼
+                                          10. Tap Request Card
+                                                 │
+                                                 ▼
+                                          11. Request Details
+                                                 │
+                                          ┌──────┴──────┐
+                                          │             │
+                                          ▼             ▼
+                                       ACCEPT        DECLINE
+                                          │             │
+                                          │        Counter-Offer?
+                                          ▼             ▼
+12. Shipper Notified ◀──────────── "Accepted"    "Declined" or
+       │                                          "Counter-Offer Sent"
+       ▼
+13. Matches Tab → "Pending Confirmation"
+       │
+       ▼
+14. Tap "Confirm Booking"
+       │
+       ▼
+15. Payment Auto-Charged
+       │
+       ▼
+16. Status: "Confirmed & Paid"
+\`\`\`
+
+---
+
+### Carrier-Initiated Flow Diagram
+
+\`\`\`
+1. Home Tab (Carrier Mode)
+       │
+       ▼
+2. Tap "Browse Packages" or "Requests" Tab
+       │
+       ▼
+3. Browse Available Packages
+       │
+       ▼
+4. Tap Package Card
+       │
+       ▼
+5. Package Details Screen
+       │
+       ▼
+6. Tap "Make Offer" ────────────────────▶ 7. Shipper Receives Notification
+       │                                         │
+       ▼                                         ▼
+7. Enter Price & Message                  8. Matches Tab → See Offer
+       │                                         │
+       ▼                                         ▼
+8. Offer Sent                             9. Tap Offer Card
+                                                 │
+                                                 ▼
+                                          10. Offer Details
+                                                 │
+                                          ┌──────┴──────┐
+                                          │             │
+                                          ▼             ▼
+                                       ACCEPT        DECLINE
+                                          │             │
+                                          │        Counter-Offer?
+                                          ▼             ▼
+11. Carrier Notified ◀──────────── "Accepted"    "Declined" or
+       │                                          "Counter-Offer"
+       ▼
+12. Matches Tab → Confirm & Continue to Delivery
+\`\`\`
+
+---
+
+### Delivery Progress Flow
+
+\`\`\`
+Matches Tab → Booking Card
+       │
+       ▼
+Status: "Confirmed"
+       │
+       ▼
+Tap "Mark Pickup" ──────────────────────▶ Status: "Picked Up"
+       │
+       ▼
+Status: "Picked Up"
+       │
+       ▼
+Tap "Start Transit" ────────────────────▶ Status: "In Transit"
+       │                                  (Can track on map)
+       ▼
+Status: "In Transit"
+       │
+       ▼
+Tap "Mark Delivered" ───────────────────▶ Status: "Delivered"
+       │                                  (Prompted to rate)
+       ▼
+Upload Delivery Photo
+       │
+       ▼
+Status: "Delivered"
+(Earnings added to balance)
+\`\`\`
+
+---
+
+### Screen-by-Screen Navigation Paths
+
+#### Flow A: Shipper Requests a Trip
+
+\`\`\`
+Home Tab (Shipper Mode)
+    └── See "Available Trips" section
+        └── Tap "See All" or scroll through trips
+            └── Trips List Screen
+                └── Tap on a trip card
+                    └── Trip Details Screen
+                        ├── See carrier info
+                        ├── See route (from → to)
+                        ├── See departure date
+                        ├── See carrier's rate
+                        └── Tap "Request to Book"
+                            └── Booking Request Sheet
+                                ├── Select your package (dropdown)
+                                ├── Enter offered price
+                                ├── Add message (optional)
+                                └── Tap "Send Request"
+                                    └── Success: "Request Sent!"
+\`\`\`
+
+#### Flow B: Track Your Request
+
+\`\`\`
+Matches Tab (Shipper Mode)
+    └── Find your request card
+        └── Status shows "Awaiting Response"
+            └── Wait for carrier response
+\`\`\`
+
+#### Flow C: Carrier Views Incoming Requests
+
+\`\`\`
+Home Tab (Carrier Mode)
+    └── See "Pending Requests" section
+        └── Badge shows number of requests
+            └── Tap request card OR go to Matches Tab
+                └── Matches Tab
+                    └── Filter: "Requests" chip
+                        └── See list of pending requests
+\`\`\`
+
+#### Flow D: Accept a Request
+
+\`\`\`
+Matches Tab (Carrier Mode)
+    └── Tap on pending request card
+        └── Request Details Screen
+            ├── See shipper info
+            ├── See package details (size, weight)
+            ├── See pickup & delivery locations
+            ├── See offered price
+            └── Tap "Accept"
+                └── Add Message Sheet
+                    ├── Enter message for shipper
+                    └── Tap "Confirm Accept"
+                        └── Success: "Request Accepted!"
+                            └── Status changes to "Accepted"
+\`\`\`
+
+#### Flow E: Decline with Counter-Offer
+
+\`\`\`
+Request Details Screen
+    └── Tap "Decline"
+        └── Decline Sheet
+            ├── Enter reason (optional)
+            └── Option: "Make Counter-Offer?"
+                │
+                ├── YES → Counter-Offer Sheet
+                │         ├── Enter your price
+                │         ├── Add message
+                │         └── Tap "Send Counter-Offer"
+                │
+                └── NO → Tap "Decline Without Offer"
+                         └── Request declined
+\`\`\`
+
+#### Flow F: Shipper Confirms Booking
+
+\`\`\`
+Shipper receives push notification
+    └── "Carrier accepted your request!"
+        └── Tap notification OR go to Matches Tab
+            └── Find booking with "Pending Confirmation" status
+                └── Tap booking card
+                    └── Booking Details Screen
+                        ├── See agreed price
+                        ├── See carrier info
+                        └── Tap "Confirm Booking"
+                            │
+                            ├── IF has saved card:
+                            │       Confirmation dialog shows
+                            │       "Your card ****1234 will be charged $XX"
+                            │       └── Tap "Confirm & Pay"
+                            │           └── Processing...
+                            │               └── Success: "Booking Confirmed!"
+                            │
+                            └── IF no saved card:
+                                └── "Add payment method" prompt
+                                    └── Add card first, then confirm
+\`\`\`
+
+#### Flow G: Counter-Offer Response (Shipper)
+
+\`\`\`
+Shipper receives notification
+    └── "Carrier proposed $XX"
+        └── Matches Tab
+            └── See counter-offer banner on booking
+                └── Tap booking card
+                    └── Counter-Offer Details
+                        ├── Original price: $50 (crossed out)
+                        ├── Counter-offer: $70
+                        └── Options:
+                            ├── Tap "Accept $70"
+                            │   └── Proceeds to Confirm & Pay
+                            │
+                            ├── Tap "Decline"
+                            │   └── Booking cancelled
+                            │
+                            └── Tap "Counter Back"
+                                └── Enter your price
+                                    └── Tap "Send"
+                                        └── Carrier receives your offer
+\`\`\`
+
+#### Flow H: Counter-Offer Negotiation Example
+
+\`\`\`
+Round 1: Shipper offers $50
+         └── Carrier receives request
+
+Round 2: Carrier counters with $70
+         └── Shipper receives counter-offer
+
+Round 3: Shipper counters with $60
+         └── Carrier receives counter-offer
+
+Round 4: Carrier accepts $60
+         └── Booking proceeds with $60 price
+             └── Shipper confirms → Auto-charged
+\`\`\`
+
+#### Flow I: Carrier Marks Pickup
+
+\`\`\`
+Matches Tab (Carrier Mode)
+    └── Find confirmed booking
+        └── Status: "Confirmed"
+            └── Tap booking card
+                └── Booking Details Screen
+                    └── Tap "Mark Pickup"
+                        └── Pickup Confirmation Sheet
+                            ├── Enter pickup code (6 digits)
+                            │   (Code shown to shipper)
+                            └── Tap "Confirm Pickup"
+                                └── Success: Status → "Picked Up"
+\`\`\`
+
+#### Flow J: Start Transit
+
+\`\`\`
+Booking Details Screen
+    └── Status: "Picked Up"
+        └── Tap "Start Transit"
+            └── Confirmation dialog
+                └── Tap "Confirm"
+                    └── Status → "In Transit"
+                        └── Location tracking enabled
+\`\`\`
+
+#### Flow K: Mark Delivered
+
+\`\`\`
+Booking Details Screen
+    └── Status: "In Transit"
+        └── Tap "Mark Delivered"
+            └── Delivery Sheet
+                ├── Take delivery photo
+                ├── Enter delivery notes (optional)
+                └── Tap "Confirm Delivery"
+                    └── Success: Status → "Delivered"
+                        └── Earnings added to carrier balance
+\`\`\`
+
+#### Flow L: Carrier Makes Offer
+
+\`\`\`
+Home Tab (Carrier Mode)
+    └── Tap "Browse Packages" or "Requests" tab
+        └── Package Requests List
+            └── Filter by route (optional)
+                └── Tap package card
+                    └── Package Details Screen
+                        ├── See package info
+                        ├── See pickup & delivery locations
+                        ├── See shipper's budget
+                        └── Tap "Make Offer"
+                            └── Offer Sheet
+                                ├── Select your trip (dropdown)
+                                ├── Enter your price
+                                ├── Add message (optional)
+                                └── Tap "Send Offer"
+                                    └── Success: "Offer Sent!"
+\`\`\`
+
+#### Flow M: Shipper Accepts Carrier Offer
+
+\`\`\`
+Shipper receives notification
+    └── "Carrier wants to carry your package"
+        └── Matches Tab
+            └── Find offer card
+                └── Status: "Offer Received"
+                    └── Tap card
+                        └── Offer Details Screen
+                            ├── See carrier info & rating
+                            ├── See carrier's trip details
+                            ├── See offered price
+                            └── Tap "Accept"
+                                └── Booking confirmed
+                                    └── Tap "Confirm & Pay"
+\`\`\`
+
+---
+
+### UI Test Scenarios
+
+#### Test 1: Shipper Requests Trip (Happy Path)
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Home (Shipper) | Find a trip | Trip cards visible |
+| 2 | Trip Card | Tap card | Trip Details opens |
+| 3 | Trip Details | Tap "Request to Book" | Booking sheet opens |
+| 4 | Booking Sheet | Select package | Package selected |
+| 5 | Booking Sheet | Enter price $50 | Price shown |
+| 6 | Booking Sheet | Tap "Send Request" | Success message |
+| 7 | Matches Tab | Check status | "Awaiting Response" |
+
+#### Test 2: Carrier Accepts Request
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Home (Carrier) | See pending requests badge | Badge shows count |
+| 2 | Matches Tab | Filter "Requests" | Request list shown |
+| 3 | Request Card | Tap card | Request Details opens |
+| 4 | Request Details | Review package info | Info displayed |
+| 5 | Request Details | Tap "Accept" | Message sheet opens |
+| 6 | Message Sheet | Enter message | Message entered |
+| 7 | Message Sheet | Tap "Confirm Accept" | Success message |
+| 8 | Matches Tab | Check status | "Accepted" |
+
+#### Test 3: Carrier Declines with Counter-Offer
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Request Details | Tap "Decline" | Decline sheet opens |
+| 2 | Decline Sheet | Tap "Make Counter-Offer" | Counter sheet opens |
+| 3 | Counter Sheet | Enter price $70 | Price shown |
+| 4 | Counter Sheet | Add message | Message entered |
+| 5 | Counter Sheet | Tap "Send" | Success message |
+| 6 | Matches Tab | Check status | "Counter-Offer Sent" |
+
+#### Test 4: Shipper Responds to Counter-Offer
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Notification | Receive "Carrier proposed $70" | Notification shown |
+| 2 | Matches Tab | See counter-offer banner | Banner visible |
+| 3 | Booking Card | Tap card | Counter details shown |
+| 4 | Counter Details | See price difference | "+$20" shown |
+| 5a | Counter Details | Tap "Accept $70" | Proceeds to confirm |
+| 5b | Counter Details | Tap "Counter Back" | Counter sheet opens |
+| 5c | Counter Details | Tap "Decline" | Booking cancelled |
+
+#### Test 5: Shipper Confirms and Pays
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Matches Tab | Find "Pending Confirmation" | Card visible |
+| 2 | Booking Card | Tap card | Details screen opens |
+| 3 | Booking Details | Tap "Confirm Booking" | Dialog shows |
+| 4 | Dialog | See card info | "Card ****1234" shown |
+| 5 | Dialog | See amount | "$XX will be charged" |
+| 6 | Dialog | Tap "Confirm & Pay" | Processing shown |
+| 7 | Booking Details | Wait | "Confirmed & Paid" status |
+
+#### Test 6: Carrier Completes Delivery
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Matches Tab | Find "Confirmed" booking | Card visible |
+| 2 | Booking Details | Tap "Mark Pickup" | Pickup sheet opens |
+| 3 | Pickup Sheet | Enter code from shipper | Code accepted |
+| 4 | Pickup Sheet | Tap "Confirm" | Status: "Picked Up" |
+| 5 | Booking Details | Tap "Start Transit" | Status: "In Transit" |
+| 6 | Booking Details | Tap "Mark Delivered" | Delivery sheet opens |
+| 7 | Delivery Sheet | Take photo | Photo captured |
+| 8 | Delivery Sheet | Tap "Confirm Delivery" | Status: "Delivered" |
+
+#### Test 7: Carrier Makes Offer to Shipper
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Home (Carrier) | Tap "Browse Packages" | Package list opens |
+| 2 | Package List | Find matching package | Package cards shown |
+| 3 | Package Card | Tap card | Package Details opens |
+| 4 | Package Details | Tap "Make Offer" | Offer sheet opens |
+| 5 | Offer Sheet | Select your trip | Trip selected |
+| 6 | Offer Sheet | Enter price | Price shown |
+| 7 | Offer Sheet | Tap "Send Offer" | Success message |
+| 8 | Matches Tab | Check | "Offer Sent" status |
+
+#### Test 8: Cancellation Flow
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Booking Details | Status: "Confirmed" | Cancel option visible |
+| 2 | Booking Details | Tap "Cancel Booking" | Confirmation dialog |
+| 3 | Dialog | Tap "Yes, Cancel" | Booking cancelled |
+| 4 | Matches Tab | Check status | "Cancelled" |
+
+---
+
+### Quick Navigation Reference
+
+| Action | Role | Path |
+|--------|------|------|
+| Browse trips | Shipper | Home Tab → Available Trips |
+| Request booking | Shipper | Trip Details → Request to Book |
+| View my requests | Shipper | Matches Tab |
+| Confirm booking | Shipper | Matches Tab → Booking → Confirm |
+| View incoming requests | Carrier | Home Tab → Pending Requests |
+| Accept/Decline request | Carrier | Matches Tab → Request → Accept/Decline |
+| Make counter-offer | Carrier | Request Details → Decline → Counter-Offer |
+| Browse packages | Carrier | Home Tab → Browse Packages |
+| Make offer | Carrier | Package Details → Make Offer |
+| Mark pickup | Carrier | Booking Details → Mark Pickup |
+| Mark delivered | Carrier | Booking Details → Mark Delivered |
+| Cancel booking | Both | Booking Details → Cancel |
+
+---
+
+### Status Reference
+
+#### Shipper View Statuses
+
+| Status | Meaning | Next Action |
+|--------|---------|-------------|
+| Awaiting Response | Request sent to carrier | Wait for carrier |
+| Offer Received | Carrier made an offer | Accept/Decline |
+| Counter-Offer Received | Carrier proposed new price | Accept/Decline/Counter |
+| Pending Confirmation | Carrier accepted | Confirm & Pay |
+| Confirmed | Payment completed | Wait for pickup |
+| Picked Up | Carrier has package | Track delivery |
+| In Transit | Package on the way | Track delivery |
+| Delivered | Package delivered | Rate carrier |
+| Cancelled | Booking cancelled | - |
+
+#### Carrier View Statuses
+
+| Status | Meaning | Next Action |
+|--------|---------|-------------|
+| New Request | Shipper wants to book | Accept/Decline |
+| Offer Sent | Waiting for shipper | Wait for response |
+| Counter-Offer Sent | Waiting for shipper | Wait for response |
+| Accepted | Shipper needs to confirm | Wait for payment |
+| Confirmed | Payment received | Mark Pickup |
+| Picked Up | Have the package | Start Transit |
+| In Transit | Delivering | Mark Delivered |
+| Delivered | Completed | Receive earnings |
+| Cancelled | Booking cancelled | - |
+
+---
+
+### What to Verify After Each Test
+
+#### After Sending Request (Shipper)
+- [ ] Success message shown
+- [ ] Request appears in Matches Tab
+- [ ] Status shows "Awaiting Response"
+- [ ] Carrier receives notification
+
+#### After Accepting Request (Carrier)
+- [ ] Success message shown
+- [ ] Status changes to "Accepted"
+- [ ] Shipper receives notification
+- [ ] Chat conversation created
+
+#### After Counter-Offer
+- [ ] Counter-offer sent successfully
+- [ ] Other party receives notification
+- [ ] Price difference shown clearly
+- [ ] Original price crossed out
+
+#### After Confirming Booking (Shipper)
+- [ ] Card charged successfully
+- [ ] Status changes to "Confirmed"
+- [ ] Transaction appears in history
+- [ ] Pickup code generated
+
+#### After Pickup (Carrier)
+- [ ] Pickup code verified
+- [ ] Status changes to "Picked Up"
+- [ ] Shipper notified
+- [ ] Timestamp recorded
+
+#### After Delivery (Carrier)
+- [ ] Delivery photo uploaded
+- [ ] Status changes to "Delivered"
+- [ ] Shipper prompted to rate
+- [ ] Earnings added to balance
+
+---
+
+### Common Issues & Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "Request to Book" not showing | No package created | Create package first |
+| Can't confirm booking | No payment method | Add card in Profile |
+| Counter-offer not available | Already accepted/declined | Check booking status |
+| Can't mark pickup | Not confirmed yet | Wait for shipper payment |
+| Pickup code rejected | Wrong code entered | Ask shipper for correct code |
+| Can't start transit | Pickup not marked | Mark pickup first |
+| Delivery photo required | Security feature | Take clear photo |
+
+---
+
+### Prerequisites for UI Testing
+
+#### Shipper Account Needs:
+- [ ] At least one package created
+- [ ] Saved payment method (for confirming bookings)
+
+#### Carrier Account Needs:
+- [ ] At least one trip created
+- [ ] Stripe payout setup (for receiving earnings)
+
+#### Test Data:
+- Use test card: \`4242 4242 4242 4242\`
+- Expiry: Any future date
+- CVC: Any 3 digits
+
+---
+
+## Comprehensive Status Reference (For Testing)
+
+### Package Request Statuses
+
+| Status | Description | What It Means | Next Possible States |
+|--------|-------------|---------------|---------------------|
+| **Open** | Available for booking | Package request is live and visible to carriers | Pending, Cancelled |
+| **Pending** | Waiting for response | Carrier has been contacted, waiting for reply | Matched, Cancelled |
+| **Pending Request** | Shipper requested specific trip | Shipper has requested a particular carrier's trip | Confirmed, Declined |
+| **Matched** | Carrier accepted | A carrier has agreed to carry the package | Booked, Cancelled |
+| **Booked** | Confirmed delivery | Both parties have confirmed the arrangement | In Transit, Cancelled |
+| **In Transit** | Being delivered | Package is currently being transported | Delivered, Cancelled |
+| **Delivered** | Successfully completed | Package has reached its destination | Final state |
+| **Cancelled** | Request cancelled | Delivery was cancelled by either party | Final state |
+
+### Trip Statuses
+
+| Status | Description | What It Means | Next Possible States |
+|--------|-------------|---------------|---------------------|
+| **Scheduled** | Trip is planned | Trip is published and available for packages | Active, Cancelled |
+| **Active** | Trip in progress | Carrier is currently on their journey | Completed, Cancelled |
+| **Completed** | Trip finished | Carrier has reached their destination | Final state |
+| **Cancelled** | Trip cancelled | Trip was cancelled by the carrier | Final state |
+
+### Match Statuses (Complete Reference)
+
+| Status | Description | What It Means | Next Possible States |
+|--------|-------------|---------------|---------------------|
+| **Pending** | Awaiting acceptance | One party has made an offer, waiting for response | Confirmed, Declined, Cancelled |
+| **Carrier Requested** | Carrier offered to carry | Carrier has offered to carry the package | Shipper Accepted, Shipper Declined |
+| **Shipper Requested** | Shipper requested trip | Shipper has requested a specific trip | Carrier Accepted, Carrier Declined |
+| **Carrier Accepted** | Carrier accepted request | Carrier has accepted shipper's request | Confirmed (auto or manual) |
+| **Shipper Accepted** | Shipper accepted offer | Shipper has accepted carrier's offer | Confirmed (auto or manual) |
+| **Confirmed** | Both parties agreed | Match is confirmed and delivery can proceed | Picked Up, Cancelled |
+| **Picked Up** | Package collected | Carrier has successfully picked up the package | In Transit, Cancelled |
+| **In Transit** | Package being delivered | Package is currently being transported | Delivered, Cancelled |
+| **Delivered** | Delivery completed | Package has been successfully delivered | Final state |
+| **Cancelled** | Match cancelled | Delivery arrangement was cancelled | Final state |
+| **Shipper Declined** | Shipper declined offer | Shipper declined carrier's offer | Final state (or Counter-Offer) |
+| **Carrier Declined** | Carrier declined request | Carrier declined shipper's request | Final state (or Counter-Offer) |
+
+### Payment Statuses
+
+| Status | Description | What It Means | Next Possible States |
+|--------|-------------|---------------|---------------------|
+| **Pending** | Payment being processed | Payment is being verified and processed | Processing, Failed, Cancelled |
+| **Processing** | Payment is being verified | Payment is being verified and processed | Completed, Failed |
+| **Completed** | Payment successful | Payment successful and funds transferred | Final state |
+| **Failed** | Payment declined or error | Payment declined or error occurred | Pending, Cancelled |
+| **Refunded** | Payment returned to shipper | Payment returned to shipper | Final state |
+| **Disputed** | Payment under review | Payment is under review or dispute | Completed, Refunded |
+| **Cancelled** | Payment cancelled | Payment was cancelled before completion | Final state |
+
+### User Profile Statuses
+
+| Status | Description | Requirements |
+|--------|-------------|--------------|
+| **Incomplete** | Profile setup not finished | Basic information required |
+| **Basic** | Basic profile information provided | Email and phone verification |
+| **Verified** | Identity and phone verified | Phone verification, basic ID |
+| **Premium** | Enhanced verification completed | Enhanced ID verification, background check |
+| **Suspended** | Account temporarily suspended | Contact support for resolution |
+| **Banned** | Account permanently banned | Cannot be reversed |
+
+### Vehicle Statuses
+
+| Status | Description | Requirements |
+|--------|-------------|--------------|
+| **Pending** | Vehicle information submitted | Vehicle documents submitted |
+| **Verified** | Vehicle information confirmed | All documents verified |
+| **Rejected** | Vehicle information rejected | Correct and resubmit documents |
+| **Expired** | Vehicle documents expired | Renew documents |
+| **Suspended** | Vehicle temporarily suspended | Contact support for resolution |
+
+### Verification Code Reference
+
+| Code Type | Purpose | Expiration | Generated By |
+|-----------|---------|------------|--------------|
+| Pickup Code | Confirm carrier picked up package | 15 minutes | Shipper |
+| Delivery Code | Confirm package delivered | 15 minutes | Recipient/Shipper |
+
+### Counter-Offer Test Reference
+
+| Scenario | Who Declines | Counter-Offer Option |
+|----------|--------------|---------------------|
+| Shipper requests trip | Carrier declines | Carrier can propose a different price |
+| Carrier offers to carry | Shipper declines | Shipper can propose a different price |
+
+**Counter-Offer Negotiation Example:**
+\`\`\`
+Round 1: Shipper offers $50 → Carrier receives request
+Round 2: Carrier counters with $70 → Shipper receives counter-offer
+Round 3: Shipper counters with $60 → Carrier receives counter-offer
+Round 4: Carrier accepts $60 → Booking proceeds with $60 price
+\`\`\`
+
+---
+
+## Debug Logging Reference
+
+### Payment Logs (Xcode Console)
+
+\`\`\`
+🔵 PaymentService: Initiating payment
+   - matchId: 456
+   - amount: 50.00
+
+🟢 PaymentService: PaymentSheet presented
+
+🟡 PaymentService: Payment completed
+   - status: .completed
+
+🔴 PaymentService: Payment failed
+   - error: card_declined
+\`\`\`
+
+### Stripe Config Logs
+
+\`\`\`
+🎯 StripeConfigService: Config loaded
+   Mode: sandbox (or live)
+   Currency: cad
+   Min Delivery Price: 5.0
+   Tax Enabled: false
+\`\`\`
+
+### Environment Verification
+
+| Check | Test Mode | Live Mode |
+|-------|-----------|-----------|
+| Console log | "Using SANDBOX/TEST mode" | "Using LIVE mode" |
+| Stripe key prefix | pk_test_ | pk_live_ |
+| Test cards work | Yes | No |
 `;
 
 // System prompts for different modes
@@ -1348,6 +3132,7 @@ const ADMIN_SYSTEM_PROMPT = `You are a Pasabayan support assistant with full pla
 ${COMPANY_INFO}
 ${APP_USER_GUIDE}
 ${BUSINESS_LOGIC_GUIDE}
+${BUSINESS_SYSTEM_OVERVIEW}
 
 You help the support team look up users, check delivery statuses, view transactions, and analyze platform metrics.
 You can also help users understand how to use the Pasabayan app.
@@ -1377,6 +3162,7 @@ const USER_SYSTEM_PROMPT = `You are a friendly Pasabayan assistant helping users
 ${COMPANY_INFO}
 ${APP_USER_GUIDE}
 ${BUSINESS_LOGIC_GUIDE}
+${BUSINESS_SYSTEM_OVERVIEW}
 
 You can answer questions about how to use the Pasabayan app, explain features, and help troubleshoot issues.
 You can only access the authenticated user's own data - never try to look up other users.
@@ -1431,6 +3217,42 @@ When developers ask about flows:
 Always be precise and technical. Use code blocks for endpoints and JSON examples.
 Format responses with markdown for readability.`;
 
+const QA_SYSTEM_PROMPT = `You are a Pasabayan QA assistant helping testers validate the payment system and app functionality.
+${COMPANY_INFO}
+${APP_USER_GUIDE}
+${QA_TESTING_GUIDE}
+
+You help QA testers understand how to test the Pasabayan app, especially payment flows. You have full knowledge of:
+- Payment flow (shipper payments, carrier payouts)
+- Transaction status transitions
+- Stripe test cards and their behaviors
+- Test scenarios and expected results
+- Edge cases and error handling
+- Debug logging and what to look for
+
+When testers ask about payment testing:
+- Provide the correct test card numbers
+- Explain expected behavior for each scenario
+- Describe what to check in logs/console
+
+When testers ask about test scenarios:
+- Walk through step-by-step test cases
+- Explain expected results at each step
+- Note any prerequisites or setup needed
+
+When testers ask about edge cases:
+- Describe how to reproduce edge cases
+- Explain expected error handling
+- Note any known issues or limitations
+
+When testers ask about debugging:
+- Explain what logs to look for
+- Describe how to verify correct behavior
+- Help interpret error messages
+
+Always be precise and helpful. Use tables and code blocks for clarity.
+No authentication is required - QA testers can access this mode freely.`;
+
 /**
  * Convert MCP tools to Anthropic tool format
  */
@@ -1460,6 +3282,8 @@ export async function processChat(
     ? DEVELOPER_SYSTEM_PROMPT
     : options.adminMode
     ? ADMIN_SYSTEM_PROMPT
+    : options.qaMode
+    ? QA_SYSTEM_PROMPT
     : USER_SYSTEM_PROMPT;
 
   // Convert messages to Anthropic format
@@ -1556,6 +3380,8 @@ export async function* streamChat(
     ? DEVELOPER_SYSTEM_PROMPT
     : options.adminMode
     ? ADMIN_SYSTEM_PROMPT
+    : options.qaMode
+    ? QA_SYSTEM_PROMPT
     : USER_SYSTEM_PROMPT;
 
   const anthropicMessages: Anthropic.MessageParam[] = messages.map((m) => ({

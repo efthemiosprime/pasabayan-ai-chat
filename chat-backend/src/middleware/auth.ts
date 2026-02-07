@@ -11,16 +11,18 @@ declare global {
       userToken?: string;
       isAdminMode?: boolean;
       isDeveloperMode?: boolean;
+      isQAMode?: boolean;
     }
   }
 }
 
 /**
  * Auth middleware - extracts and validates tokens
- * Supports three modes:
+ * Supports four modes:
  * 1. Admin mode: Uses X-Admin-Token header
  * 2. Developer mode: Uses X-Developer-Token header
- * 3. User mode: Uses Authorization header with user's Sanctum token
+ * 3. QA mode: Uses X-QA-Mode header (no token required, just flag)
+ * 4. User mode: Uses Authorization header with user's Sanctum token
  */
 export function authMiddleware(
   req: Request,
@@ -31,6 +33,7 @@ export function authMiddleware(
   const DEVELOPER_API_TOKEN = process.env.DEVELOPER_API_TOKEN || ADMIN_API_TOKEN; // Fallback to admin token
   const adminToken = req.headers["x-admin-token"] as string | undefined;
   const developerToken = req.headers["x-developer-token"] as string | undefined;
+  const qaMode = req.headers["x-qa-mode"] as string | undefined;
   const authHeader = req.headers.authorization;
   const userToken = authHeader?.replace("Bearer ", "");
 
@@ -45,6 +48,7 @@ export function authMiddleware(
     }
     req.isDeveloperMode = true;
     req.isAdminMode = false;
+    req.isQAMode = false;
     next();
     return;
   }
@@ -60,6 +64,17 @@ export function authMiddleware(
     }
     req.isAdminMode = true;
     req.isDeveloperMode = false;
+    req.isQAMode = false;
+    next();
+    return;
+  }
+
+  // Check for QA mode (no token required, just header flag)
+  if (qaMode === "true" || qaMode === "1") {
+    req.isQAMode = true;
+    req.isAdminMode = false;
+    req.isDeveloperMode = false;
+    req.userToken = undefined;
     next();
     return;
   }
@@ -69,6 +84,7 @@ export function authMiddleware(
     req.userToken = userToken;
     req.isAdminMode = false;
     req.isDeveloperMode = false;
+    req.isQAMode = false;
     next();
     return;
   }
@@ -77,6 +93,7 @@ export function authMiddleware(
   // Guest mode has limited access (no user-specific data)
   req.isAdminMode = false;
   req.isDeveloperMode = false;
+  req.isQAMode = false;
   req.userToken = undefined;
   next();
 }

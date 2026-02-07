@@ -10,9 +10,10 @@ import type { Message } from '@/lib/types';
 interface ChatWindowProps {
   adminToken?: string;
   developerToken?: string;
+  qaMode?: boolean;
 }
 
-export function ChatWindow({ adminToken, developerToken }: ChatWindowProps) {
+export function ChatWindow({ adminToken, developerToken, qaMode }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +104,7 @@ export function ChatWindow({ adminToken, developerToken }: ChatWindowProps) {
         conversationId: conversationId || undefined,
         adminToken,
         developerToken,
+        qaMode,
       });
 
       setConversationId(response.conversationId);
@@ -125,7 +127,7 @@ export function ChatWindow({ adminToken, developerToken }: ChatWindowProps) {
 
   const handleNewChat = async () => {
     try {
-      const response = await newConversation({ adminToken, developerToken });
+      const response = await newConversation({ adminToken, developerToken, qaMode });
       setConversationId(response.conversationId);
       setMessages([]);
       setError(null);
@@ -163,7 +165,7 @@ export function ChatWindow({ adminToken, developerToken }: ChatWindowProps) {
       <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-700">
-            {developerToken ? '🛠️ Developer Mode' : adminToken ? '🔐 Admin Mode' : '👤 User Mode'}
+            {developerToken ? '🛠️ Developer Mode' : adminToken ? '🔐 Admin Mode' : qaMode ? '🧪 QA Mode' : '👤 User Mode'}
           </span>
           {conversationId && (
             <span className="text-xs text-gray-400">
@@ -196,6 +198,7 @@ export function ChatWindow({ adminToken, developerToken }: ChatWindowProps) {
             onSelectQuery={handleSelectSuggestion}
             isAdmin={!!adminToken}
             isDeveloper={!!developerToken}
+            isQA={!!qaMode}
           />
         ) : (
           <>

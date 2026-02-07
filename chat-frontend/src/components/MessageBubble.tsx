@@ -1,6 +1,7 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Bot, User } from 'lucide-react';
 import type { Message } from '@/lib/types';
 
@@ -37,8 +38,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         {isUser ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:my-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded prose-img:rounded-lg prose-img:my-3">
+          <div className="prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:my-2 prose-img:rounded-lg prose-img:my-3">
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
                 img: ({ src, alt }) => (
                   <img
@@ -47,6 +49,53 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                     className="rounded-lg max-w-full h-auto my-3 border border-gray-200"
                     loading="lazy"
                   />
+                ),
+                // Code blocks with proper ASCII art support
+                pre: ({ children }) => (
+                  <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 my-3 overflow-x-auto text-xs sm:text-sm">
+                    {children}
+                  </pre>
+                ),
+                code: ({ className, children, ...props }) => {
+                  const isInline = !className && typeof children === 'string' && !children.includes('\n');
+                  if (isInline) {
+                    return (
+                      <code className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm" {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                  // Block code - preserve whitespace for ASCII diagrams
+                  return (
+                    <code
+                      className="block font-mono text-xs sm:text-sm whitespace-pre leading-relaxed"
+                      style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace' }}
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                },
+                // Table styling
+                table: ({ children }) => (
+                  <div className="overflow-x-auto my-3">
+                    <table className="min-w-full border-collapse text-sm">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-gray-100">{children}</thead>
+                ),
+                th: ({ children }) => (
+                  <th className="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="border border-gray-300 px-3 py-2 text-gray-600">
+                    {children}
+                  </td>
                 ),
               }}
             >{message.content}</ReactMarkdown>

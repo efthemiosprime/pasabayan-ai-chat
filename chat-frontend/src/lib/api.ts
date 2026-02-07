@@ -15,7 +15,7 @@ export interface ChatResponse {
   message: string;
   conversationId: string;
   toolsUsed?: string[];
-  mode: 'admin' | 'user' | 'developer';
+  mode: 'admin' | 'user' | 'developer' | 'qa';
 }
 
 /**
@@ -28,6 +28,7 @@ export async function sendMessage(
     adminToken?: string;
     developerToken?: string;
     userToken?: string;
+    qaMode?: boolean;
   } = {}
 ): Promise<ChatResponse> {
   const headers: Record<string, string> = {
@@ -38,6 +39,8 @@ export async function sendMessage(
     headers['X-Developer-Token'] = options.developerToken;
   } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
+  } else if (options.qaMode) {
+    headers['X-QA-Mode'] = 'true';
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;
   }
@@ -68,11 +71,12 @@ export async function getConversation(
     adminToken?: string;
     developerToken?: string;
     userToken?: string;
+    qaMode?: boolean;
   } = {}
 ): Promise<{
   conversationId: string;
   messages: Message[];
-  mode: 'admin' | 'user' | 'developer';
+  mode: 'admin' | 'user' | 'developer' | 'qa';
 }> {
   const headers: Record<string, string> = {};
 
@@ -80,6 +84,8 @@ export async function getConversation(
     headers['X-Developer-Token'] = options.developerToken;
   } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
+  } else if (options.qaMode) {
+    headers['X-QA-Mode'] = 'true';
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;
   }
@@ -104,10 +110,11 @@ export async function newConversation(
     adminToken?: string;
     developerToken?: string;
     userToken?: string;
+    qaMode?: boolean;
   } = {}
 ): Promise<{
   conversationId: string;
-  mode: 'admin' | 'user' | 'developer';
+  mode: 'admin' | 'user' | 'developer' | 'qa';
 }> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -117,6 +124,8 @@ export async function newConversation(
     headers['X-Developer-Token'] = options.developerToken;
   } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
+  } else if (options.qaMode) {
+    headers['X-QA-Mode'] = 'true';
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;
   }
@@ -143,6 +152,7 @@ export async function deleteConversation(
     adminToken?: string;
     developerToken?: string;
     userToken?: string;
+    qaMode?: boolean;
   } = {}
 ): Promise<void> {
   const headers: Record<string, string> = {};
@@ -151,6 +161,8 @@ export async function deleteConversation(
     headers['X-Developer-Token'] = options.developerToken;
   } else if (options.adminToken) {
     headers['X-Admin-Token'] = options.adminToken;
+  } else if (options.qaMode) {
+    headers['X-QA-Mode'] = 'true';
   } else if (options.userToken) {
     headers['Authorization'] = `Bearer ${options.userToken}`;
   }

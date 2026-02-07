@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bot, LogIn, Shield, Code, User, ChevronDown } from 'lucide-react';
+import { Bot, LogIn, Shield, Code, User, ChevronDown, FlaskConical } from 'lucide-react';
 import { ChatWindow } from '@/components/ChatWindow';
 import { healthCheck } from '@/lib/api';
 
-type AppMode = 'user' | 'admin' | 'developer';
+type AppMode = 'user' | 'admin' | 'developer' | 'qa';
 
 export default function HomePage() {
   const [token, setToken] = useState<string | null>(null);
@@ -56,6 +56,7 @@ export default function HomePage() {
     switch (mode) {
       case 'admin': return <Shield className="w-4 h-4" />;
       case 'developer': return <Code className="w-4 h-4" />;
+      case 'qa': return <FlaskConical className="w-4 h-4" />;
       default: return <User className="w-4 h-4" />;
     }
   };
@@ -64,6 +65,7 @@ export default function HomePage() {
     switch (mode) {
       case 'admin': return 'Admin';
       case 'developer': return 'Developer';
+      case 'qa': return 'QA';
       default: return 'User';
     }
   };
@@ -72,6 +74,7 @@ export default function HomePage() {
     switch (mode) {
       case 'admin': return 'bg-amber-100 text-amber-800';
       case 'developer': return 'bg-purple-100 text-purple-800';
+      case 'qa': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -121,53 +124,71 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {token ? (
-            <div className="relative">
-              <button
-                onClick={() => setShowModeMenu(!showModeMenu)}
-                className={`flex items-center gap-2 px-3 py-1.5 ${getModeColor()} rounded-full text-sm`}
-              >
-                {getModeIcon()}
-                {getModeLabel()}
-                <ChevronDown className="w-3 h-3" />
-              </button>
+          {/* Mode selector - always visible */}
+          <div className="relative">
+            <button
+              onClick={() => setShowModeMenu(!showModeMenu)}
+              className={`flex items-center gap-2 px-3 py-1.5 ${getModeColor()} rounded-full text-sm`}
+            >
+              {getModeIcon()}
+              {getModeLabel()}
+              <ChevronDown className="w-3 h-3" />
+            </button>
 
-              {showModeMenu && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px] z-50">
+            {showModeMenu && (
+              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px] z-50">
+                <button
+                  onClick={() => handleModeChange('user')}
+                  className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'user' ? 'text-gray-900 bg-gray-50' : 'text-gray-700'}`}
+                >
+                  <User className="w-4 h-4" />
+                  User Mode
+                </button>
+                <button
+                  onClick={() => { setMode('qa'); setToken(null); setShowModeMenu(false); }}
+                  className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'qa' ? 'text-green-700 bg-green-50' : 'text-gray-700'}`}
+                >
+                  <FlaskConical className="w-4 h-4" />
+                  QA Mode
+                </button>
+                <div className="border-t border-gray-100 my-1" />
+                {token ? (
+                  <>
+                    <button
+                      onClick={() => handleModeChange('admin')}
+                      className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'admin' ? 'text-amber-700 bg-amber-50' : 'text-gray-700'}`}
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin Mode
+                    </button>
+                    <button
+                      onClick={() => handleModeChange('developer')}
+                      className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'developer' ? 'text-purple-700 bg-purple-50' : 'text-gray-700'}`}
+                    >
+                      <Code className="w-4 h-4" />
+                      Developer Mode
+                    </button>
+                    <div className="border-t border-gray-100 my-1" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
                   <button
-                    onClick={() => handleModeChange('admin')}
-                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'admin' ? 'text-amber-700 bg-amber-50' : 'text-gray-700'}`}
-                  >
-                    <Shield className="w-4 h-4" />
-                    Admin Mode
-                  </button>
-                  <button
-                    onClick={() => handleModeChange('developer')}
-                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${mode === 'developer' ? 'text-purple-700 bg-purple-50' : 'text-gray-700'}`}
-                  >
-                    <Code className="w-4 h-4" />
-                    Developer Mode
-                  </button>
-                  <div className="border-t border-gray-100 my-1" />
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    onClick={() => { setShowTokenInput(true); setShowModeMenu(false); }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   >
                     <LogIn className="w-4 h-4" />
-                    Logout
+                    Login (Admin/Dev)
                   </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowTokenInput(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg text-sm transition-colors"
-            >
-              <LogIn className="w-4 h-4" />
-              Login
-            </button>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -225,6 +246,7 @@ export default function HomePage() {
         <ChatWindow
           adminToken={mode === 'admin' ? token || undefined : undefined}
           developerToken={mode === 'developer' ? token || undefined : undefined}
+          qaMode={mode === 'qa'}
         />
       </main>
     </div>

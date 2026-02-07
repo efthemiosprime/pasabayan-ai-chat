@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Lightbulb, HelpCircle, Truck, Package, User, MessageCircle, Settings, BarChart3 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lightbulb, HelpCircle, Truck, Package, User, MessageCircle, Settings, BarChart3, FlaskConical, CreditCard, CheckCircle } from 'lucide-react';
 
 interface SuggestionCategory {
   name: string;
@@ -188,13 +188,154 @@ const developerCategories: SuggestionCategory[] = [
   },
 ];
 
+// QA-specific question categories for payment testing
+const qaCategories: SuggestionCategory[] = [
+  {
+    name: 'Payment Testing',
+    icon: <CreditCard className="w-4 h-4" />,
+    queries: [
+      'What test cards can I use?',
+      'How do I test a declined payment?',
+      'How do I test 3D Secure authentication?',
+      'What is the test bank account for payouts?',
+    ],
+  },
+  {
+    name: 'Auto-Charge Flow',
+    icon: <BarChart3 className="w-4 h-4" />,
+    queries: [
+      'How does auto-charge work?',
+      'What are the auto-charge confirmation sheet states?',
+      'How do I test confirming without a saved card?',
+      'Walk me through the auto-charge happy path',
+    ],
+  },
+  {
+    name: 'Carrier Payouts',
+    icon: <Truck className="w-4 h-4" />,
+    queries: [
+      'How do I test Stripe Connect onboarding?',
+      'What are the payout status states?',
+      'What is the test bank account number?',
+      'How do I test incomplete payout setup?',
+    ],
+  },
+  {
+    name: 'Shipper UI Testing',
+    icon: <Package className="w-4 h-4" />,
+    queries: [
+      'Show me the shipper booking flow',
+      'How does a shipper request a trip?',
+      'What screens does a shipper see when confirming?',
+      'What are the shipper view statuses?',
+      'What should I verify after sending a request?',
+    ],
+  },
+  {
+    name: 'Carrier UI Testing',
+    icon: <Truck className="w-4 h-4" />,
+    queries: [
+      'Show me the carrier delivery flow',
+      'How does a carrier accept a request?',
+      'What is the screen path for making an offer?',
+      'What are the carrier view statuses?',
+      'How do I test pickup and delivery?',
+    ],
+  },
+  {
+    name: 'Counter-Offers',
+    icon: <MessageCircle className="w-4 h-4" />,
+    queries: [
+      'How does the counter-offer flow work?',
+      'Show me the counter-offer negotiation example',
+      'How do I test shipper responding to counter-offer?',
+      'What screens are involved in counter-offers?',
+    ],
+  },
+  {
+    name: 'Match Status Testing',
+    icon: <Lightbulb className="w-4 h-4" />,
+    queries: [
+      'Show me the match status lifecycle diagram',
+      'What are all the match statuses?',
+      'What are the valid status transitions?',
+      'What are the invalid transition tests?',
+      'Show me the cancellation test scenarios',
+    ],
+  },
+  {
+    name: 'All Status Reference',
+    icon: <BarChart3 className="w-4 h-4" />,
+    queries: [
+      'Show me all package request statuses',
+      'Show me all trip statuses',
+      'Show me all payment statuses',
+      'Show me all user profile statuses',
+      'Show me all vehicle statuses',
+      'Show me verification code reference',
+    ],
+  },
+  {
+    name: 'UI Test Scenarios',
+    icon: <CheckCircle className="w-4 h-4" />,
+    queries: [
+      'Show me the shipper happy path test',
+      'Show me the carrier accepts request test',
+      'How do I test the complete delivery flow?',
+      'Show me the cancellation flow test',
+      'What are the UI test prerequisites?',
+    ],
+  },
+  {
+    name: 'Navigation Reference',
+    icon: <Settings className="w-4 h-4" />,
+    queries: [
+      'Show me the quick navigation reference',
+      'What is the path to request a booking?',
+      'What is the path to make a counter-offer?',
+      'How do I navigate to mark pickup?',
+    ],
+  },
+  {
+    name: 'Minimum Price',
+    icon: <FlaskConical className="w-4 h-4" />,
+    queries: [
+      'What is the minimum delivery price?',
+      'Where does the minimum price apply?',
+      'How do I test minimum price validation?',
+      'What error shows for price below minimum?',
+    ],
+  },
+  {
+    name: 'Debug & Logs',
+    icon: <CheckCircle className="w-4 h-4" />,
+    queries: [
+      'What logs should I check in Xcode?',
+      'How do I verify test vs live mode?',
+      'Show me the QA sign-off checklist',
+      'What Stripe config logs should I see?',
+    ],
+  },
+  {
+    name: 'Common Issues',
+    icon: <HelpCircle className="w-4 h-4" />,
+    queries: [
+      'Show me common issues and solutions',
+      'Why is Request to Book not showing?',
+      'Why is the pickup code rejected?',
+      'What are the test prerequisites?',
+    ],
+  },
+];
+
 interface SuggestionsPanelProps {
   onSelectQuery: (query: string) => void;
   isAdmin?: boolean;
   isDeveloper?: boolean;
+  isQA?: boolean;
 }
 
-export function SuggestionsPanel({ onSelectQuery, isAdmin, isDeveloper }: SuggestionsPanelProps) {
+export function SuggestionsPanel({ onSelectQuery, isAdmin, isDeveloper, isQA }: SuggestionsPanelProps) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
@@ -203,7 +344,11 @@ export function SuggestionsPanel({ onSelectQuery, isAdmin, isDeveloper }: Sugges
   };
 
   // Select categories based on mode
-  const categories = isDeveloper ? developerCategories : suggestionCategories;
+  const categories = isDeveloper
+    ? developerCategories
+    : isQA
+    ? qaCategories
+    : suggestionCategories;
 
   // Quick suggestions shown at the top
   const quickSuggestions = isDeveloper
@@ -212,6 +357,13 @@ export function SuggestionsPanel({ onSelectQuery, isAdmin, isDeveloper }: Sugges
         'How do I create a match via API?',
         'What is the match status flow?',
         'How does authentication work?',
+      ]
+    : isQA
+    ? [
+        'What test cards can I use?',
+        'Show me the match status lifecycle',
+        'Walk me through the shipper booking flow',
+        'Show me the QA sign-off checklist',
       ]
     : isAdmin
     ? [
@@ -230,14 +382,16 @@ export function SuggestionsPanel({ onSelectQuery, isAdmin, isDeveloper }: Sugges
   return (
     <div className="flex flex-col items-center justify-center h-full text-center px-4">
       <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
-        <span className="text-3xl">{isDeveloper ? '🛠️' : '🚚'}</span>
+        <span className="text-3xl">{isDeveloper ? '🛠️' : isQA ? '🧪' : '🚚'}</span>
       </div>
       <h2 className="text-xl font-semibold text-gray-700 mb-2">
-        {isDeveloper ? 'Pasabayan Developer Assistant' : 'Welcome to Pasabayan Assistant'}
+        {isDeveloper ? 'Pasabayan Developer Assistant' : isQA ? 'Pasabayan QA Assistant' : 'Welcome to Pasabayan Assistant'}
       </h2>
       <p className="text-gray-500 mb-6 max-w-md">
         {isDeveloper
           ? 'Developer mode. Ask about API endpoints, request/response formats, and integration.'
+          : isQA
+          ? 'QA mode. Ask about payment testing, test cards, test scenarios, and the QA checklist.'
           : isAdmin
           ? 'You have admin access. Ask about users, matches, transactions, or platform stats.'
           : 'I can help you with trips, packages, deliveries, and more. Try asking:'}

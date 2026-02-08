@@ -392,16 +392,17 @@ Carrier Matches Tab
 Shipper receives push notification
     └── "Carrier proposed $XX"
         └── Tap notification OR go to Matches Tab
-            └── See counter-offer banner on booking
-                └── Tap booking card
-                    └── Booking Details with counter-offer info
-                        ├── Tap "Accept" → Proceeds to Confirm & Pay
-                        ├── Tap "Decline" → Booking cancelled
-                        └── Tap "Counter-Offer" → Make your own offer
-                            └── Counter-Offer Prompt
-                                ├── Enter your price
-                                └── Tap "Send Offer"
-                                    └── Carrier notified
+            └── Filter by "Carrier Offers" chip
+                └── See carrier's offer card
+                    └── Tap card → Match Details Screen
+                        └── See Accept/Decline buttons at bottom
+                            ├── Tap "Accept Offer" → Confirm dialog → Match confirmed
+                            └── Tap "Decline" → Counter-Offer Prompt appears automatically
+                                ├── See declined price (crossed out)
+                                ├── See your budget reference
+                                ├── Enter counter-offer amount
+                                └── Tap "Send Counter-Offer"
+                                    └── Carrier notified with new price
 ```
 
 ### Flow H: Counter-Offer Negotiation
@@ -533,20 +534,26 @@ Profile Tab
 | Step | Screen | Action | Expected |
 |------|--------|--------|----------|
 | 1 | Shipper | Receive push notification | "Carrier proposed $70" |
-| 2 | Matches Tab | See counter-offer banner | Banner shows price diff |
-| 3 | Booking Details | Review new price | $70 shown |
-| 4 | Booking Details | Tap "Accept" | Price updated to $70 |
-| 5 | Booking Details | Tap "Confirm Booking" | Charged $70 |
+| 2 | Matches Tab | Tap "Carrier Offers" filter chip | Filtered list shows carrier offers |
+| 3 | Matches Tab | Tap carrier offer card | Match Details screen opens |
+| 4 | Match Details | See Accept/Decline buttons | Buttons visible at bottom |
+| 5 | Match Details | Tap "Accept Offer" | Confirm dialog appears |
+| 6 | Dialog | Tap "Accept" | Match status updated to confirmed |
 
 ### Test 7: Shipper Counter-Offers Back
 
 | Step | Screen | Action | Expected |
 |------|--------|--------|----------|
-| 1 | Booking Details | See carrier's $70 offer | Price displayed |
-| 2 | Booking Details | Tap "Counter-Offer" | Prompt appears |
-| 3 | Prompt | Enter $60 | Amount accepted |
-| 4 | Prompt | Tap "Send Offer" | Offer sent to carrier |
-| 5 | Matches | Status | Shows "Awaiting Response" |
+| 1 | Matches Tab | Tap "Carrier Offers" filter chip | Filtered list shows carrier offers |
+| 2 | Matches Tab | Tap carrier offer card | Match Details screen opens |
+| 3 | Match Details | See carrier's $70 offer | Price displayed in pricing section |
+| 4 | Match Details | Tap "Decline" | Confirm dialog appears |
+| 5 | Dialog | Tap "Decline" | Counter-Offer Prompt appears automatically |
+| 6 | Prompt | See original price ($70) crossed out | Price displayed |
+| 7 | Prompt | See your budget reference | Budget shown for comparison |
+| 8 | Prompt | Enter $60 | Amount accepted |
+| 9 | Prompt | Tap "Send Counter-Offer" | Offer sent to carrier |
+| 10 | Alert | See success message | "Counter-offer sent!" |
 
 ### Test 8: Carrier Onboarding
 
@@ -586,7 +593,9 @@ Profile Tab
 | Receipts | Profile Tab → Receipts |
 | Request refund | Profile → Transaction History → Transaction → Request Refund |
 | Make counter-offer (Carrier) | Matches Tab → Request → Decline → Enter Amount |
-| Respond to counter-offer (Shipper) | Matches Tab → Booking with banner → Accept/Decline/Counter |
+| View carrier offers (Shipper) | Matches Tab → "Carrier Offers" filter chip |
+| Accept carrier offer (Shipper) | Matches Tab → Carrier Offers → Card → Accept Offer |
+| Counter-offer back (Shipper) | Matches Tab → Carrier Offers → Card → Decline → Enter Amount |
 | Payout setup (Carrier) | Profile Tab → Payout Setup |
 | View earnings (Carrier) | Profile Tab → Transaction History (filter: Carrier) |
 | Stripe dashboard (Carrier) | Profile Tab → Payout Setup → View Dashboard |
@@ -602,9 +611,12 @@ Profile Tab
 | Requires authentication | `4000 0025 0000 3155` | Test 3D Secure |
 
 For all test cards:
-- Expiry: Any future date (e.g., `12/28`)
+- Expiry: Any future date (e.g., `12/29`)
 - CVC: Any 3 digits (e.g., `123`)
-- ZIP: Any 5 digits (e.g., `12345`)
+- ZIP: Any valid format works:
+  - US ZIP: `12345`
+  - Canadian Postal: `M5V 1J1`
+  - Stripe test mode accepts any value, so just use `12345`
 
 ---
 
@@ -662,10 +674,11 @@ For all test cards:
 ### Counter-Offer Flow
 | When | What Happens |
 |------|--------------|
-| Carrier declines request | Option to make counter-offer |
-| Counter-offer sent | Other party notified |
-| Counter-offer accepted | Price updated, proceed to confirm |
-| Counter-offer declined | Can counter back or cancel |
+| Carrier declines shipper request | Counter-offer prompt appears, carrier can propose new price |
+| Shipper declines carrier offer | Counter-offer prompt appears, shipper can propose new price |
+| Counter-offer sent | Other party notified via push notification |
+| Counter-offer accepted | Price updated, proceed to confirm & pay |
+| Counter-offer declined | Can counter back (negotiation continues) or cancel |
 
 ### Payout Flow
 | When | What Happens |
@@ -683,8 +696,10 @@ For all test cards:
 | "Confirm" button not working | Must have saved payment method |
 | "Payment Failed" after confirm | Card was declined, add new card |
 | Can't see "Payment Methods" | Check if in Profile → Payments section |
-| Counter-offer not showing | Check Matches tab for banner |
-| Can't make counter-offer | Only appears after tapping "Decline" |
+| Can't see carrier offers (Shipper) | Use "Carrier Offers" filter chip in Matches tab |
+| No Accept/Decline buttons (Shipper) | Only shows for `carrier_requested` status matches |
+| Counter-offer prompt not appearing | Only appears automatically after tapping "Decline" |
+| Can't make counter-offer (Carrier) | Only appears after declining in Requests tab |
 | Payout setup not available | Must be logged in as Carrier role |
 | Receipts not showing | Wait a few seconds and refresh |
 | Refund button missing | Only available for completed transactions |

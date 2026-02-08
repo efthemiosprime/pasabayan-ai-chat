@@ -2323,6 +2323,12 @@ Carrier Receives:       $50.00 CAD ($45 delivery + $5 tip)
 | Lost Card | 4000 0000 0000 9987 | Any future | Any 3 digits |
 | Expired Card | 4000 0000 0000 0069 | Any future | Any 3 digits |
 
+**Example test card details (copy-paste ready):**
+- Card: \`4242 4242 4242 4242\`
+- MM/YY: \`12/29\` (any future date works)
+- CVC: \`123\` (any 3 digits)
+- ZIP: \`12345\` (any valid format - US: 12345, Canadian: M5V 1J1)
+
 ---
 
 ### Edge Cases to Test
@@ -3410,8 +3416,9 @@ Shipper receives notification
 
 #### Test Data:
 - Use test card: \`4242 4242 4242 4242\`
-- Expiry: Any future date
-- CVC: Any 3 digits
+- Expiry: Any future date (e.g., \`12/29\`)
+- CVC: Any 3 digits (e.g., \`123\`)
+- ZIP: Any valid format (e.g., \`12345\`)
 
 ---
 

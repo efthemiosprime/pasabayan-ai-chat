@@ -6,6 +6,26 @@ This guide covers the complete booking/matching flow between Shippers and Carrie
 
 ---
 
+## UI Map (Where to Find Things)
+
+**Shipper**
+- **Home (Shipper)** → Browse trips, request to book
+- **Matches tab** → Incoming offers + ongoing deliveries
+- **Match Details** → Counter‑offer banner, confirm match, payment, pickup/delivery codes
+- **Messages tab** → Chat (when a match has a conversation)
+
+**Carrier**
+- **Home (Carrier)** → Browse packages, request to carry
+- **Matches tab** → Booking requests + delivery status
+- **Booking Details** → Counter‑offer banner, accept/decline, pickup/delivery actions, chat card
+- **Messages tab** → Chat (when a match has a conversation)
+
+**Notifications**
+- Bell icon (top‑right) → Notifications & Actions sheet
+  Tap a notification to deep‑link into match/booking details.
+
+---
+
 ## How Matching Works
 
 **Two-Way Matching System:**
@@ -52,18 +72,18 @@ Both flows require acceptance from the other party before the booking is confirm
 │                                                 ▼                                   │
 │                                           11. Request Details                       │
 │                                                 │                                   │
-│                                          ┌──────┴──────┐                           │
-│                                          │             │                           │
-│                                          ▼             ▼                           │
-│                                       ACCEPT        DECLINE                        │
-│                                          │             │                           │
-│                                          │        Counter-Offer?                   │
-│                                          │             │                           │
-│                                          ▼             ▼                           │
-│  12. Shipper Notified ◀──────────── "Accepted"    "Declined" or                   │
-│       │                                           "Counter-Offer Sent"             │
+│                                          ┌──────┴──────┐                            │
+│                                          │             │                            │
+│                                          ▼             ▼                            │
+│                                       ACCEPT        DECLINE                         │
+│                                          │             │                            │
+│                                          │        Counter-Offer?                    │
+│                                          │             │                            │
+│                                          ▼             ▼                            │
+│  12. Shipper Notified ◀──────────── "Accepted"    "Declined" or                    │
+│       │                                           "Counter-Offer Sent"              │
 │       ▼                                                                             │
-│  13. Matches Tab → "Pending Confirmation"                                          │
+│  13. Matches Tab → "Pending Confirmation"                                           │
 │       │                                                                             │
 │       ▼                                                                             │
 │  14. Tap "Confirm Booking"                                                          │
@@ -115,29 +135,31 @@ Both flows require acceptance from the other party before the booking is confirm
 │                                                 ▼                                   │
 │                                           10. Offer Details                         │
 │                                                 │                                   │
-│                                          ┌──────┴──────┐                           │
-│                                          │             │                           │
-│                                          ▼             ▼                           │
-│                                       ACCEPT        DECLINE                        │
-│                                          │             │                           │
-│                                          │        Counter-Offer?                   │
-│                                          │             │                           │
-│  11. Carrier Notified ◀──────────── "Accepted"    "Declined" or                   │
-│       │                                           "Counter-Offer Sent"             │
+│                                          ┌──────┴──────┐                            │
+│                                          │             │                            │
+│                                          ▼             ▼                            │
+│                                       ACCEPT        DECLINE                         │
+│                                          │             │                            │
+│                                          │        Counter-Offer?                    │
+│                                          │             │                            │
+│  11. Carrier Notified ◀──────────── "Accepted"    "Declined" or                    │
+│       │                                           "Counter-Offer Sent"              │
 │       ▼                                                                             │
-│  12. Matches Tab → Confirm & Continue to Delivery                                  │
+│  12. Matches Tab → Confirm & Continue to Delivery                                   │
 │                                                                                     │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Counter-Offer Flow (New)
+## Counter-Offer Flow
 
 **Where it appears**
 - **Matches tab** (both Shipper and Carrier)
 - **View Details** screen
-- Counter-offer banner shows when match is a counter-offer
+- **CounterOfferBanner** shows when match is a counter‑offer
+- **CounterOfferStatusBanner** shows remaining counter‑offer count / limit reached
+- **Booking Details** (carrier) shows a **Chat** card if a conversation exists
 
 **Shipper flow**
 1. Matches tab → find **Carrier Requested** card.
@@ -162,6 +184,21 @@ Both flows require acceptance from the other party before the booking is confirm
 - The **CounterOfferStatusBanner** displays:
   - "X counter-offer(s) remaining" when remaining > 0
   - "Counter-offer limit reached" when remaining = 0
+
+**Counter‑Offer Banner UI (What to verify)**
+- **CounterOfferBanner**
+  - Shows original price → new price
+  - Shows who made the counter‑offer (if provided)
+  - Dismiss button hides the banner
+- **CounterOfferStatusBanner**
+  - Shows remaining counter‑offers (if > 0)
+  - Shows limit‑reached message (if 0)
+  - Dismiss button hides the banner
+
+**Where you see it (by screen)**
+- **Shipper Match Details**: banner appears at top of the details screen
+- **Carrier Booking Details**: banner appears near the top (above header section)
+- **MatchDetailsView** (fallback): banner appears at top if opened via notification
 
 For full step-by-step QA flows and expected results, see:
 `docs/CounterOffer_QA_Guide.md`
@@ -234,9 +271,22 @@ Home Tab (Shipper Mode)
                             └── Booking Request Sheet
                                 ├── Select your package (dropdown)
                                 ├── Enter offered price
-                                
+                                ├── Add message (optional)
+                                └── Tap "Send Request"
+                                    └── Success: "Request Sent!"
+```
+
+### Flow B: Track Your Request
+
+```
+Matches Tab (Shipper Mode)
+    └── Find your request card
+        └── Status shows "Awaiting Response"
+            └── Wait for carrier to accept/decline
+```
+
 ---
-                                
+
 ## Counter-Offer Testing Guide (Shipper & Carrier)
 
 ### Prerequisites
@@ -254,7 +304,7 @@ Shipper → Matches Tab
                         └── Submit
 ```
 Expected:
-- Carrier receives a notification. Counter-offer banner appears only when opening details from the notification.
+- Carrier receives a notification. Counter‑offer banner appears because the match is flagged as a counter‑offer (notification may deep‑link).
 - Shipper sees a success alert: "Counter-offer sent! The carrier has been notified."
 
 ### Carrier Counter-Offer
@@ -267,26 +317,13 @@ Carrier → Matches Tab
                     └── Submit
 ```
 Expected:
-- Shipper receives a notification. Counter-offer banner appears only when opening details from the notification.
+- Shipper receives a notification. Counter‑offer banner appears because the match is flagged as a counter‑offer (notification may deep‑link).
 - Carrier sees a success alert: "Counter-offer submitted".
 
 ### Where to Verify UI
-- Counter-offer banner shows only when arriving via counter-offer notification.
-- Match Details shows updated pricing.
-- Notifications show counter-offer messaging for the other party.
-                                ├── Add message (optional)
-                                └── Tap "Send Request"
-                                    └── Success: "Request Sent!"
-```
-
-### Flow B: Track Your Request
-
-```
-Matches Tab (Shipper Mode)
-    └── Find your request card
-        └── Status shows "Awaiting Response"
-            └── Wait for carrier to accept/decline
-```
+- Counter‑offer banner shows when match is a counter‑offer.
+- Match Details shows updated pricing + remaining counter‑offers (if provided).
+- Notifications show counter‑offer messaging for the other party.
 
 ---
 

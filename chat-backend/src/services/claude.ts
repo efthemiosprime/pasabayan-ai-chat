@@ -3203,22 +3203,44 @@ Matches Tab → Pending Confirmation booking → Tap "Confirm Booking"
 - \`Pasabayan/Features/Payments/Views/ReceiptListView.swift\`
 - \`Pasabayan/Features/Payments/Views/RefundSheetView.swift\`
 
+### Payment Flow (Shipper)
+
+**Add Card Flow:**
+\`\`\`
+Profile → Payment Methods → Add Card → Stripe Sheet (card saved)
+\`\`\`
+
+**Confirm Match Flow:**
+\`\`\`
+Matches → open Match → Match Details
+    └── If status = pending:
+        └── Tap "Confirm Match"
+             ├── If card exists → shows "Confirm & Pay"
+             └── If no card → "Add Payment Method"
+\`\`\`
+
+**Auto‑charge Failure Flow:**
+\`\`\`
+Match Details → Auto‑Charge Failure Banner
+    ├── Try Again (retry charge)
+    └── Update Card → Payment Methods
+\`\`\`
+
 ### Manual Payment Flow (Shipper)
 
-**Trigger:** \`shouldShowPaymentButton\` = true (auto-charge failed OR no default card)
+**Trigger:** \`shouldShowPaymentButton\` = true when:
+- match.status = \`confirmed\` AND
+- (auto-charge failed OR no default card)
 
 \`\`\`
-Shipper → Matches Tab
-    └── Tap match card (status: "Payment Failed" or "Awaiting Payment")
-        └── ShipperMatchDetailsView
-            ├── AutoChargeFailureBanner displayed (if failed)
-            └── "Pay" button visible
-                └── Tap "Pay"
+Shipper → Matches tab
+    └── Open match → ShipperMatchDetailsView
+        └── If match.status = confirmed AND (auto-charge failed OR no default card)
+            └── "Pay CAD $XX" button appears
+                └── Tap Pay
                     └── Stripe PaymentSheet opens
-                        ├── Enter card details (or select saved card)
-                        └── Tap "Pay $XX"
-                            └── Processing...
-                                └── Success: Payment completed
+                        └── Enter / choose card
+                            └── Tap "Pay $XX" → Success
 \`\`\`
 
 ### Manual Payment Test
@@ -3259,30 +3281,38 @@ Shipper → Matches Tab
 ### Carrier Payout UI Flow
 
 \`\`\`
-Carrier → Profile Tab
-    └── Tap "Earnings" or "Payment History"
-        └── ReceiptListView
-            ├── Shows list of completed deliveries
-            ├── Shows payout amounts
-            ├── Shows payout status (pending/paid)
-            └── Tap receipt row
-                └── Receipt Details
-                    ├── Booking reference
-                    ├── Amount earned
-                    ├── Payout status
-                    └── Payout date (if paid)
+Carrier → Profile Tab → Payments → Transaction History
+    └── Transaction list
+        └── Tap a transaction
+            └── TransactionDetailView
+                ├── Amount breakdown (total, platform fee, carrier receives)
+                ├── Participants
+                ├── Payout Status Card (if completed / payout available)
+                ├── Payout date (if paid)
+                ├── Refund / tip info if present
+                └── Timeline
 \`\`\`
+
+**Where Receipts Live:**
+\`\`\`
+Profile → Payments → Receipts → ReceiptListView
+\`\`\`
+- Receipts are PDF-style payment receipts, not a payout list.
+
+**Key distinction:**
+- **Payout status** = TransactionDetailView (via Transaction History)
+- **Receipts** = ReceiptListView (PDF receipts)
 
 ### Carrier Payout Test
 
 | Step | Screen | Action | Expected Result |
 |------|--------|--------|-----------------|
 | 1 | Carrier | Complete delivery flow | Status: "Delivered" |
-| 2 | Profile | Go to "Earnings" | ReceiptListView opens |
-| 3 | ReceiptListView | Find recent delivery | Receipt row visible |
-| 4 | Receipt Row | Check amount | Correct earnings shown |
-| 5 | Receipt Row | Check status | "Pending" initially |
-| 6 | Receipt Row | (Wait for payout) | Status: "Paid" |
+| 2 | Profile | Go to Payments → Transaction History | Transaction list opens |
+| 3 | Transaction list | Find recent delivery | Transaction row visible |
+| 4 | Transaction row | Tap to open | TransactionDetailView opens |
+| 5 | TransactionDetailView | Check amount breakdown | Platform fee + carrier receives shown |
+| 6 | TransactionDetailView | Check payout status | "Pending" initially, then "Paid" |
 
 ### Payment Quick Test Checklist
 
@@ -3300,23 +3330,38 @@ Carrier → Profile Tab
 ### Payout Setup UI Flow
 
 \`\`\`
-Profile Tab → Payout Setup
+Profile → Payments → Payout Setup
     │
-    ├── NOT SET UP:
-    │   └── Blue card icon → "Set Up Payouts"
-    │       └── Opens Stripe Express in Safari
-    │           └── Complete: personal info, ID, bank, tax
+    ├── NOT SET UP
+    │   └── Icon: creditcard
+    │   └── Title: "Set Up Payouts"
+    │   └── Button: "Set Up Payouts"
+    │       └── Opens Stripe onboarding (in‑app Safari sheet)
     │
-    ├── INCOMPLETE:
-    │   └── Orange clock icon → "Setup Incomplete"
-    │       └── "Continue Setup" resumes where left off
+    ├── INCOMPLETE (has account but not enabled)
+    │   └── Icon: clock.fill (orange)
+    │   └── Title: "Setup Incomplete"
+    │   └── Button: "Continue Setup"
+    │       └── Resumes onboarding (in‑app Safari sheet)
     │
-    └── COMPLETE:
-        └── Green check → "Payouts Active"
-            └── "View Stripe Dashboard" button
+    └── COMPLETE
+        └── Icon: checkmark.circle.fill (green)
+        └── Title: "Payouts Active"
+        └── Button: "View Stripe Dashboard"
+            └── Opens Stripe dashboard (in‑app Safari sheet)
 \`\`\`
 
-### Payout Status States
+### Payout Setup States
+
+| State | Icon | Title | Button | Action |
+|-------|------|-------|--------|--------|
+| NOT SET UP | creditcard | "Set Up Payouts" | "Set Up Payouts" | Opens Stripe onboarding |
+| INCOMPLETE | clock.fill (orange) | "Setup Incomplete" | "Continue Setup" | Resumes onboarding |
+| COMPLETE | checkmark.circle.fill (green) | "Payouts Active" | "View Stripe Dashboard" | Opens Stripe dashboard |
+
+> **Note:** All Stripe flows open in an **in‑app Safari sheet**, not external Safari.
+
+### Payout Status States (Transaction)
 
 | Status | Badge | Icon | Meaning |
 |--------|-------|------|---------|

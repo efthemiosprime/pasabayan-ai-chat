@@ -124,6 +124,415 @@ const APP_USER_GUIDE = `
 #### Rating Your Carrier
 After delivery, rate your experience (1-5 stars) and leave feedback.
 
+### Shipper Home Tab Structure
+
+**Tab Index:** 0 | **Title:** Home | **Root View:** \`ShipperHomeContent\`
+
+The Shipper Home tab is a single dashboard view focused on finding carriers: search, filters, popular routes/recent searches, and a trip list.
+
+#### View Hierarchy
+
+\`\`\`
+ShipperHomeContent
+└── ShipperDashboardView (VStack)
+    ├── UserHeaderCard (hidden while search is focused)
+    │   ├── Avatar
+    │   ├── Greeting + name
+    │   └── Role chip + verification badge
+    │
+    ├── Find Carriers header + subtitle
+    │
+    ├── SearchSection
+    │   ├── TextField (searchText)
+    │   ├── Clear button
+    │   └── Filter button → FilterSheet
+    │
+    ├── FilterControls (if hasActiveFilters)
+    │   ├── Active filters count
+    │   └── Clear All button
+    │
+    ├── PopularRoutes (or RecentSearches as fallback)
+    │   └── RecentSearchChip list
+    │
+    ├── Divider
+    │
+    └── ShipperBrowseContent
+        ├── Loading / Error / Empty states
+        └── TripCardView list
+            ├── Carrier info
+            ├── Route display
+            ├── Capacity/price
+            └── CTA (booking sheet)
+\`\`\`
+
+#### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| \`ShipperHomeContent\` | \`ShipperHomeContent.swift\` | Root container |
+| \`ShipperDashboardView\` | \`ShipperHomeContent.swift\` | Main layout |
+| \`UserHeaderCard\` | \`UserHeaderCard.swift\` | Avatar + role chip |
+| \`ShipperBrowseContent\` | \`ShipperHomeContent.swift\` | Trip list + states |
+| \`TripCardView\` | \`BrowseTripsView.swift\` | Individual trip card |
+| \`FilterSheet\` | \`FilterSheet.swift\` | Trip filters |
+| \`ActiveDeliveriesPreview\` | \`ShipperHomeContent.swift\` | Active delivery summary |
+
+#### Sheets & Modals
+
+| Trigger | Sheet | Purpose |
+|---------|-------|---------|
+| Filter button tap | \`FilterSheet\` | Configure trip search filters |
+| Trip card CTA | \`BookingSheet\` | Request a trip for a package |
+
+#### API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| \`/api/trips/available\` | GET | Browse available trips |
+| \`/api/routes/popular-packages\` | GET | Popular destinations |
+| \`/api/packages\` | GET | Package list (recent activity) |
+| \`/api/matches/shipper\` | GET | Active deliveries |
+| \`/api/packages/{packageId}/request-trip/{tripId}\` | POST | Request a trip |
+
+#### Search Filters (Trip Browse)
+
+Filters handled by \`BrowseTripsViewModel\`:
+- Search text
+- Destination
+- Transportation method
+- Price/capacity ranges
+- Dates (when available)
+
+### Shipper Matches Tab
+**Purpose:** Track match requests and delivery progress with carriers.
+
+**Entry Point**
+- Bottom tab bar → **Matches**
+
+**What you'll see**
+- Header: "Matches"
+- Filter chips (All, Counter Offers, status filters)
+- List of matches (cards)
+
+**Core actions**
+1. **Open a match card**
+   - Tap **View Details** or the card body.
+2. **Respond to a carrier offer**
+   - If status = **Carrier Requested**:
+     - Tap **3‑dot menu**
+     - Actions: View Offer, Accept Request, Counter Offer
+3. **Counter‑offer**
+   - Tap **Counter Offer**
+   - Enter new price → Send
+4. **Track delivery after acceptance**
+   - Once confirmed, use View Details to see tracking, status timeline, and payment states.
+
+**Counter‑offer rules**
+- Max **2 counter‑offers** total.
+- When limit reached, Counter Offer button is hidden.
+- UI shows "Counter‑offer limit reached."
+- Remaining counter‑offers appear in the counter‑offer status banner.
+
+### Shipper Packages Tab
+**Purpose:** Manage package requests and service requests you created.
+
+**Entry Point**
+- Bottom tab bar → **Packages** (label may show "My Packages")
+
+**What you'll see**
+- Subtitle: "Packages you created. Matches are shown in the Matches tab."
+- Filter chips by package status
+- List of your package requests
+- Floating **CREATE** button
+
+**Core actions**
+1. **Create a package request**
+   - Tap **CREATE** → choose "Ship Package"
+   - Fill out request → Submit
+2. **Create a service request**
+   - Tap **CREATE** → choose "Errand/Service"
+3. **View compatible trips**
+   - Tap a package → open **Compatible Trips**
+4. **Status changes**
+   - Package status updates as requests are matched/accepted
+   - Matches themselves are tracked in **Matches tab**
+
+### Match & Package Lifecycle (Shipper Perspective)
+
+#### Matches Tab = The Conversation + Delivery Journey
+Think of the **Matches** tab as the place where a request becomes a real delivery.
+
+**Typical journey**
+1. **A carrier makes an offer** → You can Accept, Counter‑Offer, or Decline.
+2. **You request a carrier trip** → You're waiting for the carrier to respond.
+3. **Both sides agree** → The request is accepted and moves forward.
+4. **Booking confirmed** → Delivery can begin.
+5. **Picked up → In transit → Delivered** → The delivery progresses until completion.
+6. **Cancelled / Declined** → The delivery ends without completion.
+
+#### Packages Tab = Your Requests List
+Think of **Packages** as the list of everything you created.
+
+**Typical journey**
+1. **Created** → You made a package request.
+2. **Waiting for offers** → Carriers can browse and offer to carry it.
+3. **Matched** → A carrier offer is active (appears in Matches tab).
+4. **Confirmed** → The package is locked to a carrier.
+5. **Completed / Delivered** → The delivery is finished.
+6. **Cancelled / Expired** → The request ends without delivery.
+
+#### How They Connect
+- **Packages tab** = what you created.
+- **Matches tab** = what is actively being negotiated or delivered.
+- When someone offers (or you request), it appears in **Matches**.
+- Once delivery is done, both tabs reflect completion.
+
+### Shipper Matches Tab Structure
+
+**Tab Index:** 1 | **Title:** Matches | **Root View:** \`ShipperMatchesView\`
+
+The Matches tab is the shipper's main hub for ongoing negotiations and active deliveries. It includes status filters, a counter-offer filter when available, and card-level actions via a 3‑dot menu.
+
+#### View Hierarchy
+
+\`\`\`
+ShipperMatchesView
+└── NavigationView
+    └── VStack
+        ├── Subtitle card (matches intro)
+        ├── ShipperMatchFilterSection
+        │   └── ScrollView (.horizontal)
+        │       ├── "All" chip
+        │       ├── "Counter Offers" chip (only if count > 0)
+        │       └── Status chips (carrierRequested, confirmed, pickedUp, inTransit, delivered, cancelled)
+        │
+        ├── Divider
+        │
+        └── ShipperMatchesListSection
+            ├── LoadingMatchesStateView (if loading)
+            ├── EmptyMatchesStateView (if empty)
+            └── MatchesScrollView (if data)
+                └── LazyVStack
+                    └── ShipperMatchCard
+                        ├── MatchStatusBadge (context: .shipper)
+                        ├── Carrier info + rating
+                        ├── Price
+                        ├── Status indicator strip
+                        └── CardActionFooter
+                            ├── View Details
+                            └── 3‑dot menu actions
+\`\`\`
+
+#### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| \`ShipperMatchesView\` | \`ShipperMatchesView.swift\` | Main matches list |
+| \`ShipperMatchFilterSection\` | \`ShipperMatchesView.swift\` | Filter chips |
+| \`ShipperMatchCard\` | \`ShipperMatchCard.swift\` | Match card + actions |
+| \`ShipperMatchDetailsView\` | \`ShipperMatchDetailsView.swift\` | Full match details |
+| \`GeneratePickupCodeView\` | \`GeneratePickupCodeView.swift\` | Pickup code |
+| \`GenerateDeliveryCodeView\` | \`GenerateDeliveryCodeView.swift\` | Delivery code |
+| \`LiveDeliveryTrackingView\` | \`LiveDeliveryTrackingView.swift\` | Live tracking |
+
+#### Filters
+
+- **All**: Shows every match.
+- **Counter Offers** (only if count > 0): Shows matches flagged as counter-offers.
+- **Status chips**: \`carrierRequested\`, \`confirmed\`, \`pickedUp\`, \`inTransit\`, \`delivered\`, \`cancelled\`.
+
+> The "Counter Offers" chip appears **after** "All" when there is at least one counter offer.
+
+#### Card Actions (3‑dot Menu)
+
+| Status | Actions (Menu) |
+|--------|----------------|
+| \`carrierRequested\` | View Offer, Accept Request, Counter Offer (if allowed) |
+| \`shipperRequested\` | View Request, Cancel Request |
+| \`confirmed\` | Generate/View Pickup Code, Cancel |
+| \`pickedUp\` | Track Package / Track Live (service) |
+| \`inTransit\` | Generate/View Delivery Code, Track |
+| \`delivered\` | Rate Carrier (if eligible) |
+| \`cancelled\` | None |
+
+**Counter-offer limit:** If \`canCounterOffer = false\`, the menu shows "Counter‑offer limit reached" (disabled).
+
+#### Sheets & Modals
+
+| Trigger | Sheet | Purpose |
+|---------|-------|---------|
+| "View Details" | \`ShipperMatchDetailsView\` | Full match details |
+| Generate pickup code | \`GeneratePickupCodeView\` | Pickup code |
+| Generate delivery code | \`GenerateDeliveryCodeView\` | Delivery code |
+| Track live (service) | \`LiveDeliveryTrackingView\` | Real-time tracking |
+| Rate carrier | \`RateDeliverySheet\` | Submit carrier rating |
+| Counter offer | \`CounterOfferPromptView.forShipper\` | Submit a counter-offer |
+
+#### API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| \`/api/matches/shipper\` | GET | Load shipper matches list |
+| \`/api/matches/{id}\` | GET | Match detail |
+| \`/api/matches/{id}/accept-carrier-request\` | PUT | Accept carrier request |
+| \`/api/matches/{id}/decline-carrier-request\` | PUT | Decline carrier request |
+| \`/api/matches/{id}\` | DELETE | Cancel delivery |
+| \`/api/matches/{id}/generate-pickup-code\` | POST | Generate pickup code |
+| \`/api/matches/{id}/generate-delivery-code\` | POST | Generate delivery code |
+| \`/api/matches/{id}/carrier-location\` | GET | Live tracking |
+| \`/api/matches/{id}/rating-status\` | GET | Check rating eligibility |
+| \`/api/matches/{id}/rate\` | POST | Submit rating |
+
+#### Match Flow (Shipper Perspective)
+
+\`\`\`
+shipperRequested ─────────────────────────→ cancelled
+      │                                       ↑
+      ↓                                       │
+carrierRequested ──→ confirmed ──→ pickedUp ──→ inTransit ──→ delivered
+      │                │              │           │
+      │                ↓              ↓           ↓
+      │            cancelled       cancelled   cancelled
+      ↓
+(decline) → counterOffer (new match) ──→ carrierRequested
+\`\`\`
+
+**Note:** A counter‑offer creates a **new match** in \`carrierRequested\` status. The previous match is declined; the new one replaces it in the negotiation flow.
+
+### Shipper Packages Tab Structure
+
+**Tab Index:** 2 | **Title:** Packages | **Root View:** \`ShipperPackagesContent\`
+
+The Packages tab is where shippers manage **their own package requests** (what they created). Matches/negotiations live in the **Matches** tab. Includes filtering, empty/tutorial states, and a "CREATE" floating button.
+
+#### View Hierarchy
+
+\`\`\`
+ShipperPackagesContent
+└── NavigationView
+    └── ZStack (alignment: .bottom)
+        ├── VStack
+        │   ├── Subtitle card ("Packages you created. Matches are shown in the Matches tab.")
+        │   ├── PackageFilterSection
+        │   │   └── ScrollView (.horizontal)
+        │   │       ├── All
+        │   │       ├── Open Requests (pending/open/pending_request)
+        │   │       ├── Matched
+        │   │       ├── In Transit
+        │   │       ├── Delivered
+        │   │       └── Cancelled
+        │   │
+        │   └── PackagesListSection
+        │       ├── LoadingPackagesStateView (if loading)
+        │       ├── PackageTutorialOverlay (if empty + first time)
+        │       ├── EmptyPackagesStateView (if empty)
+        │       └── PackagesScrollView (if data)
+        │           └── LazyVStack
+        │               └── PackageRequestCard
+        │                   ├── Package name/description
+        │                   ├── Route (origin → destination)
+        │                   ├── Weight/dimensions
+        │                   ├── Status badge
+        │                   ├── Created date
+        │                   ├── Photos (if any)
+        │                   └── Action menu (Edit, Find Trips, Cancel, Delete)
+        │
+        └── Floating CREATE Button
+            └── CreateOptionsSheet
+                ├── Package Delivery → PackageRequestView
+                └── Service Request → CreateServiceRequestView
+\`\`\`
+
+#### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| \`ShipperPackagesContent\` | \`ShipperPackagesContent.swift\` | Main tab container |
+| \`PackageFilterSection\` | \`ShipperPackagesContent.swift\` | Status filter chips |
+| \`PackagesListSection\` | \`ShipperPackagesContent.swift\` | Loading/empty/data states |
+| \`PackageRequestCard\` | \`PackageRequestCard.swift\` | Individual package display |
+| \`PackageRequestView\` | \`PackageRequestView.swift\` | Create/edit package form |
+| \`CompatibleTripsView\` | \`CompatibleTripsView.swift\` | Find trips for package |
+| \`CreateOptionsSheet\` | \`CreateOptionsSheet.swift\` | Create menu sheet |
+| \`CreateServiceRequestView\` | \`CreateServiceRequestView.swift\` | Service request creation |
+
+#### Filter Options
+
+| Filter | Matches These Statuses |
+|--------|-------------------------|
+| All | All package requests |
+| Open Requests | \`pending\`, \`open\`, \`pending_request\` |
+| Matched | \`matched\` |
+| In Transit | \`in_transit\` |
+| Delivered | \`delivered\` |
+| Cancelled | \`cancelled\` |
+
+#### Sheets & Modals
+
+| Trigger | Sheet | Purpose |
+|---------|-------|---------|
+| Floating **CREATE** button | \`CreateOptionsSheet\` | Choose package vs service |
+| CreateOptions → Package Delivery | \`PackageRequestView\` | Create new package request |
+| CreateOptions → Service Request | \`CreateServiceRequestView\` | Create service request |
+| Find Trips action | \`CompatibleTripsView\` | Browse matching trips |
+
+#### API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| \`/api/packages\` | GET | Load shipper package list |
+| \`/api/packages\` | POST | Create package (JSON or multipart with photos) |
+| \`/api/packages/{id}\` | GET | Load package for editing |
+| \`/api/packages/{id}\` | PUT | Update package |
+| \`/api/packages/{id}\` | DELETE | Delete package |
+| \`/api/packages/{id}/compatible-trips\` | GET | Show compatible trips |
+| \`/api/packages/{packageId}/request-trip/{tripId}\` | POST | Request a trip for package |
+
+#### Package Request Form Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| \`itemDescription\` | String | Yes | Package name/description |
+| \`originCity\` | String | Yes | Pickup city |
+| \`originCountry\` | Country | Yes | Pickup country |
+| \`destinationCity\` | String | Yes | Delivery city |
+| \`destinationCountry\` | Country | Yes | Delivery country |
+| \`weightKg\` | Double | Yes | Package weight |
+| \`lengthCm\` | Double | No | Package length |
+| \`widthCm\` | Double | No | Package width |
+| \`heightCm\` | Double | No | Package height |
+| \`preferredDeliveryDate\` | Date | No | Desired delivery date |
+| \`maxBudget\` | Double | No | Maximum price willing to pay |
+| \`specialInstructions\` | String | No | Handling notes |
+| \`photos\` | [UIImage] | No | Package photos (up to 5) |
+
+#### Package Actions by Status
+
+| Status | Available Actions |
+|--------|------------------|
+| \`open\` | Edit, Find Trips, Cancel, Delete |
+| \`pending_request\` | Review carrier response, Cancel |
+| \`matched\` | View Match, Cancel |
+| \`in_transit\` | Track, View Match |
+| \`delivered\` | Rate (if needed), View Details |
+| \`cancelled\` | Delete |
+
+#### Package Lifecycle
+
+\`\`\`
+open/pending_request → matched → in_transit → delivered
+        │                 │          │
+        ↓                 ↓          ↓
+    cancelled          cancelled   cancelled
+\`\`\`
+
+#### Floating Create Button
+- **Label:** \`CREATE\`
+- **Shape:** Capsule
+- **Light mode:** Black background, white text
+- **Dark mode:** White background, black text
+- **Opens:** \`CreateOptionsSheet\` (Package Delivery / Service Request)
+
 ### For Carriers (Delivering Packages)
 
 #### Becoming a Carrier
@@ -164,6 +573,317 @@ After delivery, rate your experience (1-5 stars) and leave feedback.
 - Platform fee: 10%
 - Funds transfer to your Stripe account automatically
 - Tips can be added by shippers
+
+### Carrier Home Tab Structure
+
+**Tab Index:** 0 | **Title:** Home | **Root View:** \`CarrierHomeContent\` → \`CarrierDashboardView\`
+
+The Carrier Home tab is a single scrollable dashboard focused on discovering packages to carry. It prioritizes search, popular routes/recent searches, and a browseable package list. The header hides when search is focused to maximize space.
+
+#### View Hierarchy
+
+\`\`\`
+CarrierHomeContent
+└── CarrierDashboardView (VStack)
+    ├── UserHeaderCard (hidden when search is focused)
+    │   ├── Avatar (UserAvatarView)
+    │   ├── Welcome + name
+    │   ├── Role chip + verification chip
+    │   └── Role switcher menu (ellipsis)
+    │
+    ├── SearchSection ("Find Packages")
+    │   ├── TextField (searchText binding)
+    │   ├── Clear button (inline, conditional)
+    │   └── Filter glyph → PackageFiltersSheet
+    │
+    ├── Popular Routes (if available) OR Recent Searches
+    │
+    └── CarrierBrowseContent
+        ├── Loading / Error / Empty states
+        └── Package list (CarrierPackageCard)
+            ├── Route / price / weight / urgency
+            ├── Shipper info
+            ├── Compact ↔ Expanded toggle
+            └── CTA → RequestToCarrySheet
+\`\`\`
+
+#### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| \`CarrierHomeContent\` | \`CarrierHomeContent.swift\` | Root container, data loading |
+| \`CarrierDashboardView\` | \`CarrierHomeContent.swift\` | Main layout |
+| \`UserHeaderCard\` | \`UserHeaderCard.swift\` | Avatar, role chip, verification chip |
+| \`CarrierBrowseContent\` | \`CarrierHomeContent.swift\` | Package discovery list |
+| \`CarrierPackageCard\` | \`CarrierPackageCard.swift\` | Package card with offer CTA |
+| \`PackageFiltersSheet\` | \`PackageFiltersSheet.swift\` | Filters for search |
+| \`RequestToCarrySheet\` | \`RequestToCarrySheet.swift\` | Submit carrier offer |
+
+#### Sheets & Modals
+
+| Trigger | Sheet | Purpose |
+|---------|-------|---------|
+| Filter glyph tap | \`PackageFiltersSheet\` | Configure package search filters |
+| Package card CTA | \`RequestToCarrySheet\` | Submit carrier offer to shipper |
+| Avatar/name tap | \`UserProfilePopover\` | Quick profile summary |
+| Verification badge tap (Basic) | \`PhoneVerificationFlowView\` | Start verification |
+
+#### API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| \`/api/carrier/profile\` | GET | Carrier profile for header |
+| \`/api/carrier/stats\` | GET | Carrier stats |
+| \`/api/trips\` | GET | Load carrier trips |
+| \`/api/routes/popular-packages\` | GET | Popular routes |
+| \`/api/packages\` | GET | Available packages for discovery |
+| \`/api/trips/{tripId}/packages/{packageId}/request\` | POST | Submit carrier offer |
+
+#### State & Behavior Notes
+
+- Header hides when search is focused; returns when focus is lost.
+- Popular routes appear when no search text or destination filter is active.
+- Recent searches appear only if there are no popular routes and no active search.
+- Search filters applied locally: destination, urgency, package type, weight, price.
+
+### Carrier My Trips Tab Structure
+
+**Tab Index:** 2 | **Title:** My Trips | **Root View:** \`CarrierTripsContent\`
+
+The My Trips tab allows carriers to manage their trips - creating new trips, editing existing ones, and controlling trip status (planning/active).
+
+#### View Hierarchy
+
+\`\`\`
+CarrierTripsContent
+└── NavigationView
+    └── ZStack (alignment: .bottom)
+        ├── VStack
+        │   ├── TripFilterSection
+        │   │   └── ScrollView (.horizontal)
+        │   │       ├── "All" filter chip
+        │   │       └── ForEach TripStatus.allCases
+        │   │           └── Filter chip (with count)
+        │   │
+        │   ├── Divider
+        │   │
+        │   └── TripsListSection
+        │       ├── LoadingStateView (if loading)
+        │       ├── TripTutorialOverlay (first time, no trips)
+        │       ├── EmptyTripsStateView (if empty)
+        │       └── TripsScrollView
+        │           └── TripCard
+        │               ├── Route info (origin → destination)
+        │               ├── Date/time display
+        │               ├── Capacity (weight/space)
+        │               ├── Price per kg
+        │               ├── TripStatusBadge
+        │               ├── Transportation method icon
+        │               └── Pending requests badge
+        │
+        └── floatingCreateTripButton (Capsule "CREATE")
+            └── Sheet: TripCreationView
+\`\`\`
+
+#### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| \`CarrierTripsContent\` | \`CarrierTripsContent.swift\` | Main tab container |
+| \`TripFilterSection\` | \`TripFilterSection.swift\` | Status filter chips |
+| \`TripsListSection\` | \`TripsListSection.swift\` | Loading/empty/data states |
+| \`TripsScrollView\` | \`TripsListSection.swift\` | Trip list with tap handling |
+| \`TripCard\` | \`TripCard.swift\` | Individual trip display |
+| \`TripStatusBadge\` | \`TripStatusBadge.swift\` | Visual status indicator |
+| \`TripCreationView\` | \`TripCreationView.swift\` | Trip creation form |
+| \`TripDetailsView\` | \`TripDetailsView.swift\` | Full trip details/editing |
+| \`TripTutorialOverlay\` | \`TripTutorialOverlay.swift\` | First-time user tutorial |
+
+#### Filter Options (TripStatus)
+
+| Status | Display Name | Color | Description |
+|--------|--------------|-------|-------------|
+| \`planning\` | Planning | Blue | Trip not yet active |
+| \`active\` | Active | Green | Visible to shippers, bookable |
+| \`inTransit\` | In Transit | Orange | Currently traveling |
+| \`completed\` | Completed | Gray | Trip finished |
+| \`cancelled\` | Cancelled | Red | Trip cancelled |
+
+#### Sheets & Modals
+
+| Trigger | Sheet | Purpose |
+|---------|-------|---------|
+| CREATE button tap | \`TripCreationView\` | Create new trip |
+| Trip card tap | \`TripDetailsView\` | View/edit trip details |
+| Edit action | \`EditTripSheet\` | Modify trip settings |
+
+#### API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| \`/api/trips\` | GET | Load trip list |
+| \`/api/trips\` | POST | Create new trip |
+| \`/api/trips/{tripId}\` | PUT | Update trip (status, capacity, etc.) |
+| \`/api/trips/{tripId}\` | DELETE | Remove trip |
+
+#### Trip Creation Flow
+
+1. User taps "CREATE" button
+2. \`TripCreationView\` sheet opens
+3. User fills form:
+   - Origin (country + city)
+   - Destination (country + city)
+   - Departure date/time
+   - Arrival date/time
+   - Available weight (kg)
+   - Price per kg
+   - Transportation method
+   - Special notes (optional)
+4. On submit: Form validation → API call → Success alert → Sheet dismisses → List refreshes
+
+#### Trip Status Workflow
+
+\`\`\`
+planning → active → inTransit → completed
+              ↓
+          cancelled
+\`\`\`
+
+| Status | Description |
+|--------|-------------|
+| \`planning\` | Default after creation, NOT visible to shippers |
+| \`active\` | Visible to shippers, can receive booking requests |
+| \`inTransit\` | Carrier is traveling, no new bookings |
+| \`completed\` | Trip finished |
+| \`cancelled\` | Trip cancelled by carrier |
+
+> **Important:** Trips with \`planning\` status are NOT visible to shippers. Carriers must switch to \`active\` status to receive booking requests.
+
+### Profile Tab Structure (Shared)
+
+**Tab Index:** 4 (both roles) | **Title:** Profile | **Root View:** \`ProfileView\`
+
+The Profile tab is shared across roles. It contains the user header, role switcher, verification prompts, role‑specific stats, payments, bookings history, and support/settings.
+
+#### View Hierarchy
+
+\`\`\`
+ProfileView
+└── NavigationView
+    └── ScrollView
+        ├── UserProfileHeader
+        │   ├── Avatar
+        │   ├── Name
+        │   ├── Role chip + verification badge
+        │   └── Edit profile entry
+        │
+        ├── RoleSwitcherSection
+        │   ├── Current role indicator
+        │   ├── Shipper toggle
+        │   └── Carrier toggle
+        │
+        ├── ProfileStatsSection (role-specific)
+        │
+        ├── CarrierStatusCard (carrier only)
+        │
+        ├── AccountMenuSection
+        │   ├── Personal Info → EditUserProfileSheet
+        │   ├── Verification → VerificationStatusView
+        │   ├── Vehicle Info → EditCarrierProfileSheet
+        │   └── Shipping Addresses → PlaceholderView
+        │
+        ├── PaymentsMenuSection
+        │   ├── Payment Methods → PaymentMethodsView
+        │   ├── Transaction History → TransactionHistoryView
+        │   ├── Receipts → ReceiptListView
+        │   └── Payout Setup → PayoutSetupView
+        │
+        ├── BookingsMenuSection
+        │   ├── My Matches → MatchListView
+        │   ├── Delivery History → DeliveryHistoryView
+        │   └── Package History → PackageHistoryView
+        │
+        ├── FavoritesMenuSection (shipper only)
+        │
+        ├── FeedbackMenuSection
+        │
+        ├── SupportMenuSection
+        │
+        └── ProfileActionsSection
+            └── Logout
+\`\`\`
+
+#### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| \`ProfileView\` | \`ProfileView.swift\` | Main profile container |
+| \`UserProfileHeader\` | \`UserProfileHeader.swift\` | Avatar + role + verification |
+| \`RoleSwitcherSection\` | \`RoleSwitcherSection.swift\` | Role toggle controls |
+| \`ProfileStatsSection\` | \`ProfileStatsSection.swift\` | Role-specific stats |
+| \`CarrierStatusCard\` | \`CarrierStatusCard.swift\` | Carrier status |
+| \`VerificationStatusView\` | \`VerificationStatusView.swift\` | Verification prompts |
+| \`PaymentsMenuSection\` | \`PaymentsMenuSection.swift\` | Payments actions |
+
+#### Verification Levels
+
+| Level | Badge | Notes |
+|-------|-------|-------|
+| \`basic\` | None | Can verify phone |
+| \`verified\` | Checkmark | Can upgrade to premium |
+| \`premium\` | Star | Verification completed |
+
+#### Sheets & Modals
+
+| Trigger | Sheet | Purpose |
+|---------|-------|---------|
+| Personal Info | \`EditUserProfileSheet\` | Edit profile details + photo |
+| Verification | \`VerificationStatusView\` | Verification status + upgrade |
+| Vehicle Info | \`EditCarrierProfileSheet\` | Carrier profile details |
+| Payment Methods | \`PaymentMethodsView\` | Manage cards |
+| Transaction History | \`TransactionHistoryView\` | Payment history |
+| Receipts | \`ReceiptListView\` | Receipts list |
+| Payout Setup | \`PayoutSetupView\` | Carrier payouts |
+| Help Center | \`HelpCenterView\` | Support |
+| Settings | \`SettingsView\` | App settings |
+| Delivery History | \`DeliveryHistoryView\` | Delivered bookings |
+| Package History | \`PackageHistoryView\` | Package history |
+
+#### API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| \`/api/profile\` | GET | Load profile |
+| \`/api/profile\` | PUT | Update profile data |
+| \`/api/profile\` | POST | Update profile + avatar |
+| \`/api/profile/picture\` | DELETE | Remove avatar |
+| \`/api/carrier/profile\` | GET | Carrier profile |
+| \`/api/carrier/profile\` | POST/PUT | Create/update carrier profile |
+| \`/api/carrier/toggle-status\` | POST | Carrier active/inactive |
+| \`/api/carrier/stats\` | GET | Carrier stats |
+| \`/api/user/stats\` | GET | Ratings stats |
+
+#### Role Switching
+
+- Role is toggled in \`RoleSwitcherSection\`.
+- If carrier profile is required, the app prompts for carrier details.
+- Role change updates the dashboard and tab stack.
+
+#### Role‑Specific Sections
+
+| Section | Carrier | Shipper |
+|---------|---------|---------|
+| Carrier Status Card | Yes | No |
+| Payout Setup | Yes | No |
+| Carrier stats | Yes | No |
+| Favorites section | No | Yes |
+| Shipper stats | No | Yes |
+
+#### Logout Flow
+
+1. Tap Log out
+2. Auth token is cleared
+3. App returns to login
 
 ### Payment & Security
 
@@ -2462,6 +3182,110 @@ Matches Tab → Pending Confirmation booking → Tap "Confirm Booking"
 
 ---
 
+## Payment UI Flow (iOS)
+
+### Screen & File Reference
+
+| Component | File Path | Purpose |
+|-----------|-----------|---------|
+| Pay Button | \`ShipperMatchDetailsView.swift\` | Manual payment trigger |
+| AutoChargeConfirmationSheet | \`AutoChargeConfirmationSheet.swift\` | Confirm auto-charge |
+| AutoChargeConfirmationViewModel | \`AutoChargeConfirmationViewModel.swift\` | Auto-charge logic |
+| AutoChargeFailureBanner | \`AutoChargeFailureBanner.swift\` | Failure notification |
+| ReceiptListView | \`ReceiptListView.swift\` | Carrier payment history |
+| RefundSheetView | \`RefundSheetView.swift\` | Refund/payout details |
+
+**Full Paths:**
+- \`Pasabayan/Features/Bookings/Views/Shipper/ShipperMatchDetailsView.swift\`
+- \`Pasabayan/Features/Bookings/Views/Shared/Components/AutoChargeConfirmationSheet.swift\`
+- \`Pasabayan/Features/Bookings/ViewModels/AutoChargeConfirmationViewModel.swift\`
+- \`Pasabayan/Features/Bookings/Components/AutoChargeFailureBanner.swift\`
+- \`Pasabayan/Features/Payments/Views/ReceiptListView.swift\`
+- \`Pasabayan/Features/Payments/Views/RefundSheetView.swift\`
+
+### Manual Payment Flow (Shipper)
+
+**Trigger:** \`shouldShowPaymentButton\` = true (auto-charge failed OR no default card)
+
+\`\`\`
+Shipper → Matches Tab
+    └── Tap match card (status: "Payment Failed" or "Awaiting Payment")
+        └── ShipperMatchDetailsView
+            ├── AutoChargeFailureBanner displayed (if failed)
+            └── "Pay" button visible
+                └── Tap "Pay"
+                    └── Stripe PaymentSheet opens
+                        ├── Enter card details (or select saved card)
+                        └── Tap "Pay $XX"
+                            └── Processing...
+                                └── Success: Payment completed
+\`\`\`
+
+### Manual Payment Test
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Matches Tab | Find booking with payment issue | Card shows payment banner |
+| 2 | Match Details | Verify failure banner | "Payment failed" banner visible |
+| 3 | Match Details | Verify "Pay" button | Button is visible and enabled |
+| 4 | Match Details | Tap "Pay" | Stripe PaymentSheet opens |
+| 5 | PaymentSheet | Enter card OR select saved | Card info entered/selected |
+| 6 | PaymentSheet | Tap "Pay $XX" | Processing indicator |
+| 7 | PaymentSheet | Wait | Success confirmation |
+| 8 | Match Details | Check status | Status updates, banner removed |
+
+### Auto-Charge Failure Banner
+
+**Component:** AutoChargeFailureBanner
+**Trigger:** \`transactionStatus == "failed"\`
+**Appears on:** MatchDetailsView, ShipperMatchDetailsView
+
+| Scenario | Banner Message | Action |
+|----------|----------------|--------|
+| Card declined | "Payment failed - card declined" | "Pay" button |
+| Insufficient funds | "Payment failed - insufficient funds" | "Pay" button |
+| Card expired | "Payment failed - card expired" | "Pay" button |
+| No payment method | "No payment method on file" | "Add Card" / "Pay" |
+
+### Failure Banner Test Cards
+
+| Test | Card Number | Expected Banner |
+|------|-------------|-----------------|
+| Declined | 4000000000000002 | "declined" message |
+| Insufficient funds | 4000000000009995 | "insufficient funds" |
+| Expired | 4000000000000069 | "expired" message |
+| No card | (remove all cards) | "no payment method" |
+
+### Carrier Payout UI Flow
+
+\`\`\`
+Carrier → Profile Tab
+    └── Tap "Earnings" or "Payment History"
+        └── ReceiptListView
+            ├── Shows list of completed deliveries
+            ├── Shows payout amounts
+            ├── Shows payout status (pending/paid)
+            └── Tap receipt row
+                └── Receipt Details
+                    ├── Booking reference
+                    ├── Amount earned
+                    ├── Payout status
+                    └── Payout date (if paid)
+\`\`\`
+
+### Carrier Payout Test
+
+| Step | Screen | Action | Expected Result |
+|------|--------|--------|-----------------|
+| 1 | Carrier | Complete delivery flow | Status: "Delivered" |
+| 2 | Profile | Go to "Earnings" | ReceiptListView opens |
+| 3 | ReceiptListView | Find recent delivery | Receipt row visible |
+| 4 | Receipt Row | Check amount | Correct earnings shown |
+| 5 | Receipt Row | Check status | "Pending" initially |
+| 6 | Receipt Row | (Wait for payout) | Status: "Paid" |
+
+---
+
 ## Carrier Payout Setup (Stripe Connect)
 
 ### Payout Setup UI Flow
@@ -2578,6 +3402,237 @@ Shipper receives notification → Can:
 | Shipper accepts | Price updated to $70, auto-charge on confirm |
 | Shipper counters $60 | Carrier notified, status "Awaiting Response" |
 | Final acceptance | Agreed price used for auto-charge |
+
+---
+
+## Matches vs Packages (Visual Guide)
+
+This is a quick visual guide that shows how **Packages** and **Matches** differ, and how a **Match connects a Package + Trip**.
+
+### The Big Picture
+
+\`\`\`
+Package (what shipper creates)
+    │
+    │  carrier offers / shipper requests
+    ▼
+Match (the negotiation + delivery)
+    ▲
+    │  carrier trip chosen
+    │
+Trip (what carrier creates)
+\`\`\`
+
+**Think of it this way:**
+- **Package** = the item + request details (created by the shipper)
+- **Trip** = the carrier's travel plan (created by the carrier)
+- **Match** = the agreement that links a specific Package to a specific Trip
+
+### Side‑by‑Side Snapshot (Key Fields)
+
+| Concept | What it represents | Key fields |
+|---------|--------------------|------------|
+| **Package** | The shipment request | \`package_id\`, \`pickup_city\`, \`delivery_city\`, \`weight_kg\`, \`max_price_budget\`, \`status\` |
+| **Trip** | The carrier's trip route | \`trip_id\`, \`origin_city\`, \`destination_city\`, \`price_per_kg\`, \`status\` |
+| **Match** | The negotiation + delivery | \`match_id\`, \`package_request_id\`, \`carrier_trip_id\`, \`agreed_price\`, \`match_status\`, \`is_counter_offer\` |
+
+### Quick Diagram: What's on Package vs Match
+
+\`\`\`
+PACKAGE (shipper creates)          MATCH (negotiation + delivery)
+┌────────────────────────┐         ┌────────────────────────┐
+│ package_id             │         │ match_id               │
+│ pickup_city            │         │ agreed_price           │
+│ delivery_city          │         │ match_status           │
+│ weight_kg              │         │ is_counter_offer       │
+│ max_price_budget       │         │                        │
+│ status                 │         │ package_request_id ────┼──→ links to Package
+└────────────────────────┘         │ carrier_trip_id ───────┼──→ links to Trip
+                                   └────────────────────────┘
+\`\`\`
+
+### Package Lifecycle (Shipper‑side)
+
+\`\`\`
+Drafted → Open (waiting for carrier) → Matched → In Transit → Delivered
+                         │                │           │
+                         └────────────→ Cancelled ←───┘
+\`\`\`
+
+**Plain English:** You create a package, wait for carrier interest, pick a carrier, then track delivery.
+
+### Match Lifecycle (Negotiation + Delivery)
+
+\`\`\`
+Offer/Request → Counter‑Offer (optional) → Confirmed → Picked Up → In Transit → Delivered
+       │                 │                  │            │            │
+       └────────────→ Declined/Cancelled ←──┴────────────┴────────────┘
+\`\`\`
+
+**Plain English:** A match starts when someone makes an offer, may go through counter‑offers, then becomes a delivery once confirmed.
+
+**Chat connection:** Once a match exists, a chat thread can appear in **Messages** tab for communication between shipper and carrier.
+
+### Example Data
+
+**Package #179**
+\`\`\`
+Pickup: Toronto, CA
+Delivery: Montreal, CA
+Weight: 2.5 kg
+Max Budget: CAD 80.00
+Status: open
+\`\`\`
+
+**Trip #254**
+\`\`\`
+From: Toronto, CA
+To: Montreal, CA
+Rate: CAD 12.00 / kg
+Status: active
+\`\`\`
+
+**Match #456** (this is the link)
+\`\`\`
+package_request_id: 179
+carrier_trip_id: 254
+agreed_price: CAD 70.00
+match_status: carrier_requested
+is_counter_offer: true
+\`\`\`
+
+**Key idea:** The **Match** links **Package** and **Trip** via:
+\`\`\`
+package_request_id  → Package #179
+carrier_trip_id     → Trip #254
+\`\`\`
+
+### Where You See Them in the App
+
+| Tab | Shows | Contains |
+|-----|-------|----------|
+| **Packages tab** | Package objects | What shipper created |
+| **Matches tab** | Match objects | The negotiation + delivery |
+
+A **Match** always points back to the original **Package** and the chosen **Trip**.
+
+### Quick Mental Model
+
+\`\`\`
+Package = "What I want shipped"
+Trip    = "Where I'm traveling"
+Match   = "We agreed to ship it on that trip"
+\`\`\`
+
+---
+
+## Shipper Matches & Packages QA Testing
+
+### Matches Tab — Core Scenarios
+
+**A1. View Matches List**
+1. Open Matches tab.
+2. Confirm list shows cards (or empty state).
+3. Verify filter chips update counts.
+
+Expected:
+- List is populated or empty state appears.
+- Filter chips work (All, Counter Offers, status).
+
+---
+
+**A2. Carrier Requested → Accept Request**
+1. Open a match with status **Carrier Requested**.
+2. Tap 3‑dot menu → **Accept Request**.
+
+Expected:
+- Match advances to accepted/confirmed state.
+- Success feedback appears.
+
+---
+
+**A3. Carrier Requested → Counter Offer**
+1. Open a match with status **Carrier Requested**.
+2. Tap 3‑dot menu → **Counter Offer**.
+3. Enter new price → Send.
+
+Expected:
+- Counter‑offer sent success message.
+- Match stays pending.
+- Counter‑offer banner visible in View Details.
+
+---
+
+**A4. Counter‑Offer Limit Reached**
+1. Use a match with \`remaining_counter_offers = 0\`.
+2. Open 3‑dot menu.
+
+Expected:
+- Counter Offer not available.
+- "Counter‑offer limit reached" appears.
+
+---
+
+**A5. Remaining Counter‑Offers Displayed**
+1. Use match with \`remaining_counter_offers = 1\`.
+2. Open View Details.
+
+Expected:
+- CounterOfferStatusBanner shows "1 counter‑offer(s) remaining".
+
+---
+
+### Packages Tab — Core Scenarios
+
+**B1. View Packages List**
+1. Open Packages tab.
+2. Verify list shows your package requests or empty state.
+
+Expected:
+- List populated or empty state message.
+- Filter chips update counts.
+
+---
+
+**B2. Create Package Request**
+1. Tap **CREATE**.
+2. Choose **Ship Package**.
+3. Fill details → Submit.
+
+Expected:
+- Package appears in list.
+- Status is pending/open.
+
+---
+
+**B3. Create Service Request**
+1. Tap **CREATE**.
+2. Choose **Errand/Service**.
+3. Fill details → Submit.
+
+Expected:
+- Service request appears in list.
+
+---
+
+**B4. View Compatible Trips**
+1. Tap a package in list.
+2. Open compatible trips screen.
+
+Expected:
+- List of compatible trips appears.
+
+---
+
+### Shipper Matches & Packages Pass/Fail Criteria
+
+| Area | Criteria |
+|------|----------|
+| Matches tab | Actions behave correctly for each status |
+| Counter‑offer UI | Appears only when allowed |
+| Limit reached | Hides counter‑offer actions |
+| Remaining counter‑offers | Visible in the banner |
+| Packages tab | Supports create, list, filter, and compatible trips |
 
 ---
 
@@ -3517,6 +4572,223 @@ Round 2: Carrier counters with $70 → Shipper receives counter-offer
 Round 3: Shipper counters with $60 → Carrier receives counter-offer
 Round 4: Carrier accepts $60 → Booking proceeds with $60 price
 \`\`\`
+
+---
+
+## Counter-Offer UI QA Guide
+
+This guide describes how to test the counter-offer UI flow end-to-end in the app, from both roles. It is written for non-technical QA testers.
+
+### Quick Summary
+- Counter-offers are limited to **2 rounds** per negotiation.
+- When the limit is reached, **Counter Offer** must be hidden/disabled and the UI should show **"Counter-offer limit reached."**
+- Remaining counter-offers should appear in the **CounterOfferStatusBanner**.
+
+### Roles Covered
+- Shipper (Sender)
+- Carrier
+
+---
+
+### A. SHIPPER (Sender) FLOWS
+
+#### A1. Shipper receives a carrier offer and counters
+**Where:** Matches tab
+
+**Steps**
+1. Open the **Matches** tab.
+2. Find a match with status **Carrier Requested**.
+3. Tap the **3-dot menu** on the card.
+4. Tap **Counter Offer**.
+5. Enter a new price and optional message.
+6. Tap **Send**.
+
+**Expected result**
+- Success message appears.
+- Match stays in **Pending**.
+- Open **View Details** and verify the **Counter-Offer banner** shows:
+  - "Was $X" and "Now $Y"
+  - "Counter-offered by [Name]"
+- If remaining offers are available, the banner shows:
+  - "X counter-offer(s) remaining"
+
+#### A2. Shipper accepts a counter-offer
+**Where:** Matches tab → View Details
+
+**Steps**
+1. Open **Matches** tab.
+2. Find a **Carrier Requested** match that is a counter-offer.
+3. Tap **View Details**.
+4. Tap **Accept Offer**.
+
+**Expected result**
+- Match moves forward to the next state (accepted/confirmed depending on backend).
+- Any counter-offer prompt is dismissed.
+- Counter-offer banner remains visible if still in details.
+
+#### A3. Shipper declines without countering
+**Where:** Matches tab → View Details
+
+**Steps**
+1. Open **Matches** tab.
+2. Tap **View Details** on a **Carrier Requested** match.
+3. Tap **Decline**.
+
+**Expected result**
+- Match is declined.
+- **Counter-offer prompt should NOT open automatically.**
+
+#### A4. Shipper hits counter-offer limit
+**Where:** Matches tab
+
+**Steps**
+1. Open **Matches** tab.
+2. Find a match where **counter-offer round = 2** or **remaining = 0**.
+3. Tap the **3-dot menu**.
+
+**Expected result**
+- **Counter Offer** option is hidden or disabled.
+- Menu shows **"Counter-offer limit reached."**
+- Only **Accept** and **Decline** are available.
+
+#### A5. Shipper attempts counter-offer after limit (error handling)
+**Where:** Matches tab → View Details
+
+**Steps**
+1. Open a match that has already reached limit.
+2. If Counter Offer is still available, try to submit.
+
+**Expected result**
+- App shows alert:
+  - "Counter-offer limit reached. You can accept or decline."
+
+---
+
+### B. CARRIER FLOWS
+
+#### B1. Carrier receives a shipper request and counters
+**Where:** Matches tab
+
+**Steps**
+1. Open **Matches** tab (carrier role).
+2. Find a **Shipper Requested** match.
+3. Tap the **3-dot menu**.
+4. Tap **Counter Offer**.
+5. Enter a new price and optional message.
+6. Tap **Send**.
+
+**Expected result**
+- Success message appears.
+- Match stays in **Pending**.
+- Open **View Details** and verify **Counter-Offer banner** shows:
+  - "Was $X" and "Now $Y"
+  - "Counter-offered by [Name]"
+- If remaining offers are available, banner shows:
+  - "X counter-offer(s) remaining"
+
+#### B2. Carrier accepts a shipper request
+**Where:** Matches tab
+
+**Steps**
+1. Open **Matches** tab.
+2. Find a **Shipper Requested** match.
+3. Tap **3-dot menu**.
+4. Tap **Accept Booking**.
+
+**Expected result**
+- Match moves to accepted/confirmed state.
+- Counter-offer prompt is not shown.
+
+#### B3. Carrier declines without countering
+**Where:** Matches tab
+
+**Steps**
+1. Open **Matches** tab.
+2. Tap **3-dot menu** on a shipper request.
+3. Tap **Decline Booking**.
+
+**Expected result**
+- Match is declined.
+- **Counter-offer prompt should NOT open automatically.**
+
+#### B4. Carrier hits counter-offer limit
+**Where:** Matches tab
+
+**Steps**
+1. Open **Matches** tab.
+2. Find a match where **counter-offer round = 2** or **remaining = 0**.
+3. Tap the **3-dot menu**.
+
+**Expected result**
+- **Counter Offer** option hidden/disabled.
+- Menu shows **"Counter-offer limit reached."**
+- Only **Accept Booking** and **Decline Booking** remain.
+
+---
+
+### C. DETAIL SCREENS (Both Roles)
+
+#### C1. Counter-Offer banner appears in details
+**Where:** View Details
+
+**Steps**
+1. Open a counter-offer match.
+2. Tap **View Details**.
+
+**Expected result**
+- **Counter-Offer banner** shows original price vs new price.
+- Banner displays remaining offers if available.
+
+#### C2. Remaining counter-offers in status banner
+**Where:** CounterOfferStatusBanner (details)
+
+**Steps**
+1. Perform a counter-offer (or open a match with warnings/negotiation).
+2. Observe the **CounterOfferStatusBanner**.
+
+**Expected result**
+- If remaining > 0 → "X counter-offer(s) remaining"
+- If remaining = 0 → "Counter-offer limit reached"
+
+---
+
+### D. NOTIFICATION FLOW
+
+#### D1. Open counter-offer from notification
+**Steps**
+1. Tap the **Counter-Offer** push notification.
+
+**Expected result**
+- App opens match details.
+- Counter-Offer banner is visible immediately.
+
+---
+
+### E. LEGACY DATA (Backward Compatibility)
+
+#### E1. Old matches without metadata
+**Steps**
+1. Open a match created before backend updates.
+
+**Expected result**
+- Counter-offer banner may still show if message parsing works.
+- Remaining counter-offer count is not shown (data missing).
+
+---
+
+### Test Data Suggestions
+Use Admin Panel **Counter-Offer Test** to create:
+- Round 1 → remaining = 1 (Counter Offer visible)
+- Round 2 → remaining = 0 (Counter Offer hidden, limit reached)
+
+---
+
+### Pass/Fail Criteria
+**Pass** if:
+- Counter Offer is visible only when \`can_counter_offer = true\`.
+- Remaining count displays when provided.
+- Limit reached hides counter-offer and shows the limit message.
+- Decline does **not** auto-open counter-offer prompt.
 
 ---
 

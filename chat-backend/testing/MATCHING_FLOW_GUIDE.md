@@ -18,12 +18,13 @@ Both flows require acceptance from the other party before the booking is confirm
 
 ## Complete Matching Flow Diagram
 
-### Shipper-Initiated Flow
-
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
 │                           SHIPPER-INITIATED FLOW                                    │
 ├─────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                     │
+│  SHIPPER                                  CARRIER                                   │
+│  ───────                                  ───────                                   │
 │                                                                                     │
 │  1. Home Tab (Shipper Mode)                                                         │
 │       │                                                                             │
@@ -40,29 +41,29 @@ Both flows require acceptance from the other party before the booking is confirm
 │  5. Tap "Request to Book"                                                           │
 │       │                                                                             │
 │       ▼                                                                             │
-│  6. Select Package & Set Price ──────────────▶ 7. Carrier Receives Notification    │
-│       │                                              │                              │
-│       ▼                                              ▼                              │
-│  8. Request Sent                                9. Matches Tab → See Request        │
-│     "Awaiting Response"                              │                              │
-│                                                      ▼                              │
-│                                                 10. Tap Request Card                │
-│                                                      │                              │
-│                                                      ▼                              │
-│                                                 11. Request Details                 │
-│                                                      │                              │
-│                                               ┌──────┴──────┐                       │
-│                                               │             │                       │
-│                                               ▼             ▼                       │
-│                                            ACCEPT        DECLINE                    │
-│                                               │             │                       │
-│                                               │        Counter-Offer?               │
-│                                               │             │                       │
-│                                               ▼             ▼                       │
-│  12. Shipper Notified ◀──────────────── "Accepted"    "Declined" or                │
-│       │                                               "Counter-Offer Sent"          │
+│  6. Select Package & Set Price ──────────▶ 7. Carrier Receives Notification        │
+│       │                                         │                                   │
+│       ▼                                         ▼                                   │
+│  8. Request Sent                           9. Matches Tab → See Request             │
+│     "Awaiting Response"                         │                                   │
+│                                                 ▼                                   │
+│                                           10. Tap Request Card                      │
+│                                                 │                                   │
+│                                                 ▼                                   │
+│                                           11. Request Details                       │
+│                                                 │                                   │
+│                                          ┌──────┴──────┐                           │
+│                                          │             │                           │
+│                                          ▼             ▼                           │
+│                                       ACCEPT        DECLINE                        │
+│                                          │             │                           │
+│                                          │        Counter-Offer?                   │
+│                                          │             │                           │
+│                                          ▼             ▼                           │
+│  12. Shipper Notified ◀──────────── "Accepted"    "Declined" or                   │
+│       │                                           "Counter-Offer Sent"             │
 │       ▼                                                                             │
-│  13. Matches Tab → "Pending Confirmation"                                           │
+│  13. Matches Tab → "Pending Confirmation"                                          │
 │       │                                                                             │
 │       ▼                                                                             │
 │  14. Tap "Confirm Booking"                                                          │
@@ -78,12 +79,15 @@ Both flows require acceptance from the other party before the booking is confirm
 
 ---
 
-### Carrier-Initiated Flow
+## Carrier-Initiated Flow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
 │                           CARRIER-INITIATED FLOW                                    │
 ├─────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                     │
+│  CARRIER                                  SHIPPER                                   │
+│  ───────                                  ───────                                   │
 │                                                                                     │
 │  1. Home Tab (Carrier Mode)                                                         │
 │       │                                                                             │
@@ -100,65 +104,105 @@ Both flows require acceptance from the other party before the booking is confirm
 │  5. Package Details Screen                                                          │
 │       │                                                                             │
 │       ▼                                                                             │
-│  6. Tap "Make Offer" ────────────────────────▶ 7. Shipper Receives Notification    │
-│       │                                              │                              │
-│       ▼                                              ▼                              │
-│  8. Enter Price & Message                       9. Matches Tab → See Offer          │
-│       │                                              │                              │
-│       ▼                                              ▼                              │
-│  9. Offer Sent                                 10. Tap Offer Card                   │
-│     "Awaiting Response"                              │                              │
-│                                                      ▼                              │
-│                                                 11. Offer Details                   │
-│                                                      │                              │
-│                                               ┌──────┴──────┐                       │
-│                                               │             │                       │
-│                                               ▼             ▼                       │
-│                                            ACCEPT        DECLINE                    │
-│                                               │             │                       │
-│                                               │        Counter-Offer?               │
-│                                               │             │                       │
-│                                               ▼             ▼                       │
-│  12. Carrier Notified ◀──────────────── "Accepted"    "Declined" or                │
-│       │                                               "Counter-Offer Sent"          │
+│  6. Tap "Make Offer" ────────────────────▶ 7. Shipper Receives Notification        │
+│       │                                         │                                   │
+│       ▼                                         ▼                                   │
+│  7. Enter Price & Message                  8. Matches Tab → See Offer               │
+│       │                                         │                                   │
+│       ▼                                         ▼                                   │
+│  8. Offer Sent                             9. Tap Offer Card                        │
+│     "Awaiting Response"                         │                                   │
+│                                                 ▼                                   │
+│                                           10. Offer Details                         │
+│                                                 │                                   │
+│                                          ┌──────┴──────┐                           │
+│                                          │             │                           │
+│                                          ▼             ▼                           │
+│                                       ACCEPT        DECLINE                        │
+│                                          │             │                           │
+│                                          │        Counter-Offer?                   │
+│                                          │             │                           │
+│  11. Carrier Notified ◀──────────── "Accepted"    "Declined" or                   │
+│       │                                           "Counter-Offer Sent"             │
 │       ▼                                                                             │
-│  13. Matches Tab → Confirm & Continue to Delivery                                   │
+│  12. Matches Tab → Confirm & Continue to Delivery                                  │
 │                                                                                     │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Delivery Progress Flow
+## Counter-Offer Flow (New)
+
+**Where it appears**
+- **Matches tab** (both Shipper and Carrier)
+- **View Details** screen
+- Counter-offer banner shows when match is a counter-offer
+
+**Shipper flow**
+1. Matches tab → find **Carrier Requested** card.
+2. Tap **3-dot menu** → **Counter Offer**.
+3. Enter new price → **Send**.
+4. Expected: Success message; counter-offer banner in **View Details**.
+
+**Carrier flow**
+1. Matches tab → find **Shipper Requested** card.
+2. Tap **3-dot menu** → **Counter Offer**.
+3. Enter new price → **Send**.
+4. Expected: Success message; counter-offer banner in **View Details**.
+
+**Counter-offer limits**
+- Max **2 counter-offers** per negotiation.
+- When limit is reached:
+  - **Counter Offer** is hidden/disabled.
+  - UI shows **"Counter-offer limit reached."**
+  - Only **Accept** and **Decline** remain.
+
+**Remaining counter-offers**
+- The **CounterOfferStatusBanner** displays:
+  - "X counter-offer(s) remaining" when remaining > 0
+  - "Counter-offer limit reached" when remaining = 0
+
+For full step-by-step QA flows and expected results, see:
+`docs/CounterOffer_QA_Guide.md`
+
+---
+
+## Delivery Progress Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
 │                           DELIVERY PROGRESS                                         │
 ├─────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                     │
+│  After booking is CONFIRMED & PAID:                                                 │
+│                                                                                     │
+│  CARRIER ACTIONS                          SHIPPER SEES                              │
+│  ──────────────                           ────────────                              │
+│                                                                                     │
 │  Matches Tab → Booking Card                                                         │
 │       │                                                                             │
 │       ▼                                                                             │
-│  Status: "Confirmed"                                                                │
+│  Status: "Confirmed"                      Status: "Confirmed"                       │
 │       │                                                                             │
 │       ▼                                                                             │
-│  Tap "Mark Pickup" ──────────────────────────▶ Status: "Picked Up"                 │
-│       │                                        (Shipper notified)                   │
+│  Tap "Mark Pickup" ──────────────────────▶ Status: "Picked Up"                     │
+│       │                                                                             │
 │       ▼                                                                             │
-│  Enter Pickup Code (6 digits)                                                       │
+│  Enter Pickup Code (from Shipper)                                                   │
 │       │                                                                             │
 │       ▼                                                                             │
 │  Status: "Picked Up"                                                                │
 │       │                                                                             │
 │       ▼                                                                             │
-│  Tap "Start Transit" ────────────────────────▶ Status: "In Transit"                │
-│       │                                        (Can track on map)                   │
+│  Tap "Start Transit" ────────────────────▶ Status: "In Transit"                    │
+│       │                                    (Can track on map)                       │
 │       ▼                                                                             │
 │  Status: "In Transit"                                                               │
 │       │                                                                             │
 │       ▼                                                                             │
-│  Tap "Mark Delivered" ───────────────────────▶ Status: "Delivered"                 │
-│       │                                        (Prompted to rate)                   │
+│  Tap "Mark Delivered" ───────────────────▶ Status: "Delivered"                     │
+│       │                                    (Prompted to rate)                       │
 │       ▼                                                                             │
 │  Upload Delivery Photo                                                              │
 │       │                                                                             │
@@ -171,13 +215,13 @@ Both flows require acceptance from the other party before the booking is confirm
 
 ---
 
-## Part 1: Shipper - Request to Book
+## Part 1: Shipper - Request to Book a Trip
 
-### Flow A: Find and Book a Trip
+### Flow A: Browse and Request
 
 ```
 Home Tab (Shipper Mode)
-    └── "Find Carriers" section
+    └── See "Available Trips" section
         └── Tap "See All" or scroll through trips
             └── Trips List Screen
                 └── Tap on a trip card
@@ -190,6 +234,46 @@ Home Tab (Shipper Mode)
                             └── Booking Request Sheet
                                 ├── Select your package (dropdown)
                                 ├── Enter offered price
+                                
+---
+                                
+## Counter-Offer Testing Guide (Shipper & Carrier)
+
+### Prerequisites
+- A request exists between a shipper and carrier (either flow is OK).
+- Both users are signed in on separate devices or accounts.
+
+### Shipper Counter-Offer (sender)
+```
+Shipper → Matches Tab
+    └── Tap the match card (status: Carrier Requested)
+        └── Match Details
+            └── Tap "Decline"
+                └── Counter-Offer sheet appears
+                    └── Enter counter-offer amount
+                        └── Submit
+```
+Expected:
+- Carrier receives a notification. Counter-offer banner appears only when opening details from the notification.
+- Shipper sees a success alert: "Counter-offer sent! The carrier has been notified."
+
+### Carrier Counter-Offer
+```
+Carrier → Matches Tab
+    └── Requests list (pending shipper requests)
+        └── Tap "Decline" on a request card
+            └── Counter-Offer prompt appears
+                └── Enter counter-offer amount
+                    └── Submit
+```
+Expected:
+- Shipper receives a notification. Counter-offer banner appears only when opening details from the notification.
+- Carrier sees a success alert: "Counter-offer submitted".
+
+### Where to Verify UI
+- Counter-offer banner shows only when arriving via counter-offer notification.
+- Match Details shows updated pricing.
+- Notifications show counter-offer messaging for the other party.
                                 ├── Add message (optional)
                                 └── Tap "Send Request"
                                     └── Success: "Request Sent!"
@@ -227,7 +311,8 @@ Matches Tab (Carrier Mode)
     └── Tap on pending request card
         └── Request Details Screen
             ├── See shipper info
-            ├── See package details
+            ├── See package details (size, weight)
+            ├── See pickup & delivery locations
             ├── See offered price
             └── Tap "Accept"
                 └── Add Message Sheet
@@ -262,9 +347,9 @@ Request Details Screen
 ### Flow F: Accept Carrier's Acceptance
 
 ```
-Shipper receives notification
-    └── "Carrier accepted your request"
-        └── Matches Tab
+Shipper receives push notification
+    └── "Carrier accepted your request!"
+        └── Tap notification OR go to Matches Tab
             └── Find booking with "Pending Confirmation" status
                 └── Tap booking card
                     └── Booking Details Screen
@@ -281,15 +366,14 @@ Shipper receives notification
                             │
                             └── IF no saved card:
                                 └── "Add payment method" prompt
-                                    └── Add card first
-                                        └── Then confirm booking
+                                    └── Add card first, then confirm
 ```
 
 ---
 
 ## Part 4: Counter-Offer Flow
 
-### Flow G: Shipper Responds to Counter-Offer
+### Flow G: Respond to Counter-Offer (Shipper)
 
 ```
 Shipper receives notification
@@ -312,10 +396,10 @@ Shipper receives notification
                             └── Tap "Counter Back"
                                 └── Enter your price
                                     └── Tap "Send"
-                                        └── Carrier receives your counter
+                                        └── Carrier receives your offer
 ```
 
-### Flow H: Multi-Round Negotiation Example
+### Flow H: Counter-Offer Negotiation Example
 
 ```
 Round 1: Shipper offers $50
@@ -331,47 +415,6 @@ Round 4: Carrier accepts $60
          └── Booking proceeds with $60 price
              └── Shipper confirms → Auto-charged $60
 ```
-
----
-
-## Counter-Offer Testing Guide
-
-### Prerequisites
-- A request exists between a shipper and carrier (either flow is OK)
-- Both users are signed in on separate devices or accounts
-
-### Shipper Counter-Offer (Sender)
-```
-Shipper → Matches Tab
-    └── Tap the match card (status: Carrier Requested)
-        └── Tap "Counter-Offer" button
-            └── Counter-Offer sheet appears
-                └── Enter counter-offer amount
-                    └── Submit
-```
-**Expected:**
-- Carrier receives a notification
-- Counter-offer banner appears only when opening details from the notification
-- Shipper sees a success alert: "Counter-offer sent! The carrier has been notified."
-
-### Carrier Counter-Offer
-```
-Carrier → Matches Tab
-    └── Requests list (pending shipper requests)
-        └── Tap "Decline" on a request card
-            └── Counter-Offer prompt appears
-                └── Enter counter-offer amount
-                    └── Submit
-```
-**Expected:**
-- Shipper receives a notification
-- Counter-offer banner appears only when opening details from the notification
-- Carrier sees a success alert: "Counter-offer submitted"
-
-### Where to Verify UI
-- Counter-offer banner shows only when arriving via counter-offer notification
-- Match Details shows updated pricing
-- Notifications show counter-offer message
 
 ---
 
@@ -432,6 +475,7 @@ Home Tab (Carrier Mode)
             └── Filter by route (optional)
                 └── Tap package card
                     └── Package Details Screen
+                        ├── See package info
                         ├── See pickup & delivery locations
                         ├── See shipper's budget
                         └── Tap "Make Offer"
@@ -460,7 +504,7 @@ Shipper receives notification
                             ├── See carrier info & rating
                             ├── See carrier's trip details
                             ├── See offered price
-                            └── Tap "Accept Offer"
+                            └── Tap "Accept"
                                 └── Booking confirmed
                                     └── Tap "Confirm & Pay"
 ```
@@ -697,11 +741,3 @@ Offer Details Screen
 - Use test card: `4242 4242 4242 4242`
 - Expiry: Any future date
 - CVC: Any 3 digits
-
----
-
-## Document Information
-
-**Last Updated:** February 7, 2026
-**Document Version:** 1.0
-**Purpose:** Visual UI flow reference for matching/booking testing

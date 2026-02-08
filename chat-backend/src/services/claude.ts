@@ -3284,6 +3284,15 @@ Carrier → Profile Tab
 | 5 | Receipt Row | Check status | "Pending" initially |
 | 6 | Receipt Row | (Wait for payout) | Status: "Paid" |
 
+### Payment Quick Test Checklist
+
+- [ ] Delivery completes → **Shipper** transaction appears in Profile → Payments → Transaction History
+- [ ] Delivery completes → **Carrier** transaction appears in Profile → Payments → Transaction History
+- [ ] Payout setup accessible for carriers (Profile → Payments → Payout Setup)
+- [ ] Auto‑charge failure routes to Payment Methods (via bell notification)
+- [ ] Auto‑charge failure banner shows **Try Again** and **Update Card** in Match Details
+- [ ] Notifications route correctly (bell → tap → correct destination)
+
 ---
 
 ## Carrier Payout Setup (Stripe Connect)

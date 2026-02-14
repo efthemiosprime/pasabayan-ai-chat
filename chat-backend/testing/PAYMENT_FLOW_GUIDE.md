@@ -8,6 +8,44 @@ Payment flows handle:
 
 ---
 
+## Fee Model (Dual-Fee)
+
+| Party | Calculation | Example (base $10) |
+|-------|-------------|-------------------|
+| **Sender (Shipper)** | Pays base + 10% service fee | $11.00 |
+| **Carrier** | Receives base − 5% platform fee | $9.50 |
+| **Platform** | 10% + 5% of base = 15% | $1.50 |
+
+### Amount Breakdown Example
+
+```
+Agreed Delivery Price (Base):  $50.00 CAD
++ Service Fee (10%):           $ 5.00 CAD
++ Tip (optional):              $ 5.00 CAD
+───────────────────────────────────────────
+Shipper Pays (Total):          $60.00 CAD
+
+Carrier Earnings:
+  Base Amount:                 $50.00 CAD
+  − Platform Fee (5%):         -$ 2.50 CAD
+  + Tip (100%):                +$ 5.00 CAD
+───────────────────────────────────────────
+Carrier Receives:              $52.50 CAD
+
+Platform Revenue:              $ 7.50 CAD (10% + 5% of base)
+```
+
+### API Response Fields
+
+| Endpoint | Key Response Fields |
+|----------|---------------------|
+| `GET /api/payments/config` | `sender_fee_percentage`, `carrier_fee_percentage` |
+| `POST /api/payments` | `amounts.total`, `amounts.carrier_receives`, `amounts.base_amount` |
+| `GET /api/payments/{id}` | Same amounts structure |
+| `GET /api/receipts` | `amount.total`, `amount.carrier_amount` |
+
+---
+
 ## Payment Flow (Shipper)
 
 ### Screen Reference
@@ -103,7 +141,7 @@ Shipper → Matches Tab
 - [ ] "Pay" button appears when no default card exists
 - [ ] AutoChargeFailureBanner displays correct message
 - [ ] Stripe PaymentSheet opens correctly
-- [ ] Amount in PaymentSheet matches booking price
+- [ ] Amount in PaymentSheet matches booking price + 10% service fee
 - [ ] Success updates booking status
 - [ ] Failure banner removed after successful payment
 
@@ -207,7 +245,8 @@ Carrier → Profile Tab
 
 **Verification Checklist**:
 - [ ] Earnings appear after delivery completion
-- [ ] Correct amount shown (booking price - platform fee)
+- [ ] Correct amount shown (base price − 5% platform fee)
+- [ ] `amounts.carrier_receives` matches displayed amount
 - [ ] Payout status updates (Pending → Paid)
 - [ ] Receipt details are accurate
 - [ ] Stripe payout account linked (required for payouts)

@@ -115,7 +115,7 @@ Use these example questions to interact with the Pasabayan AI Assistant.
 |-------|--------------|
 | "How do I get paid?" | Payment process for carriers |
 | "When will I receive my payment?" | Payment timing |
-| "How much is the platform fee?" | 10% fee explained |
+| "How much is the platform fee?" | Dual-fee model explained (10% sender + 5% carrier = 15% total) |
 | "Where can I see my earnings?" | Earnings dashboard |
 | "How do tips work?" | Tip system |
 

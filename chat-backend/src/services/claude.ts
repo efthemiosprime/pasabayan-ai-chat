@@ -570,9 +570,9 @@ open/pending_request → matched → in_transit → delivered
 
 #### Getting Paid
 - Payments are held in escrow until delivery is confirmed
-- Platform fee: 10%
+- Platform fee: 5% deducted from your earnings (shipper pays an additional 10% service fee)
 - Funds transfer to your Stripe account automatically
-- Tips can be added by shippers
+- Tips can be added by shippers (100% goes to you)
 
 ### Carrier Home Tab Structure
 
@@ -1093,16 +1093,17 @@ Trips and packages are matched based on:
 2. **Carrier Picks Up** → Money remains in escrow (protected)
 3. **Carrier Delivers** → Shipper generates a 6-digit delivery code
 4. **Code Entered** → Carrier enters code to confirm handoff
-5. **Payment Released** → Platform takes 10% fee, carrier gets 90%
+5. **Payment Released** → Platform fee deducted, carrier receives payout
 6. **Payout** → Funds transfer to carrier's bank (2-3 business days via Stripe)
 
-### Fee Breakdown Example
-| Item | Amount |
-|------|--------|
-| Shipper pays | $100.00 |
-| Platform fee (10%) | -$10.00 |
-| Carrier receives | $90.00 |
-| Optional tip | +100% to carrier |
+### Fee Breakdown Example (Dual-Fee Model)
+
+| Party | Calculation | Example (base $100) |
+|-------|-------------|---------------------|
+| **Shipper pays** | Base + 10% service fee | $110.00 |
+| **Carrier receives** | Base − 5% platform fee | $95.00 |
+| **Platform total** | 10% + 5% of base = 15% | $15.00 |
+| **Optional tip** | 100% to carrier | +tip amount |
 
 ### Escrow Protection
 - **For Shippers**: Money isn't released until YOU generate the delivery code and carrier enters it
@@ -1268,16 +1269,19 @@ Trips and packages are matched based on:
 - 🥚 Fragile items (experienced handlers)
 - 📅 Holiday seasons (high demand)
 
-### Understanding the Final Cost
+### Understanding the Final Cost (Dual-Fee Model)
 
 \`\`\`
-Your Budget: $100
-├── Carrier receives: $90 (90%)
-├── Platform fee: $10 (10%)
-└── Optional tip: You decide (100% to carrier)
+Agreed Delivery Price (Base): $100
+├── Service Fee (10%):        +$10.00 (you pay)
+├── Total You Pay:            $110.00
+│
+├── Carrier Receives:         $95.00 (base − 5%)
+├── Platform Fee Total:       $15.00 (10% + 5%)
+└── Optional Tip:             You decide (100% to carrier)
 \`\`\`
 
-**No hidden fees**: The price you agree on is what you pay (plus optional tip).
+**Transparent pricing**: You pay the agreed price + 10% service fee. Carriers receive the agreed price minus 5%.
 
 ## Verification Levels & Benefits
 
@@ -2918,17 +2922,23 @@ Pasabayan uses Stripe for payment processing with:
 
 ---
 
-### Amount Breakdown Example
+### Amount Breakdown Example (Dual-Fee Model)
 
 \`\`\`
-Agreed Delivery Price:  $50.00 CAD
-+ Tip (optional):       $ 5.00 CAD
-─────────────────────────────────
-Shipper Pays:           $55.00 CAD
+Agreed Delivery Price (Base):  $50.00 CAD
++ Service Fee (10%):           $ 5.00 CAD
++ Tip (optional):              $ 5.00 CAD
+───────────────────────────────────────────
+Shipper Pays (Total):          $60.00 CAD
 
-Platform Fee (10%):     -$ 5.00 CAD
-─────────────────────────────────
-Carrier Receives:       $50.00 CAD ($45 delivery + $5 tip)
+Carrier Earnings:
+  Base Amount:                 $50.00 CAD
+  − Platform Fee (5%):         -$ 2.50 CAD
+  + Tip (100%):                +$ 5.00 CAD
+───────────────────────────────────────────
+Carrier Receives:              $52.50 CAD
+
+Platform Revenue:              $ 7.50 CAD (10% + 5% of base)
 \`\`\`
 
 ---
@@ -3106,11 +3116,13 @@ Carrier Receives:       $50.00 CAD ($45 delivery + $5 tip)
 
 ### QA Sign-Off Checklist
 
-**Payment Processing:**
+**Payment Processing (Dual-Fee Model):**
 - [ ] All transaction states transition correctly
-- [ ] Payment amounts calculated accurately
-- [ ] Platform fee deducted correctly (10%)
-- [ ] Tips added to carrier total correctly
+- [ ] Payment amounts calculated accurately (base + 10% sender fee)
+- [ ] Sender fee (10%) applied correctly to shipper total
+- [ ] Carrier fee (5%) deducted correctly from carrier payout
+- [ ] Platform receives correct total (15% of base)
+- [ ] Tips added to carrier total correctly (100% to carrier)
 
 **Stripe Integration:**
 - [ ] Stripe config loads (test/live mode)

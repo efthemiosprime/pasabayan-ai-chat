@@ -114,7 +114,7 @@ export const paymentTools = [
           "",
           "**Amounts:**",
           `  Total: $${transaction.total_amount.toFixed(2)}`,
-          `  Platform fee (10%): $${transaction.platform_fee.toFixed(2)}`,
+          `  Platform fee: $${transaction.platform_fee.toFixed(2)}`,
           `  Carrier receives: $${transaction.carrier_amount.toFixed(2)}`,
           transaction.tip_amount ? `  Tip: $${transaction.tip_amount.toFixed(2)}` : null,
           transaction.tax_amount ? `  Tax: $${transaction.tax_amount.toFixed(2)}` : null,

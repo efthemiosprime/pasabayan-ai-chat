@@ -2847,6 +2847,1069 @@ struct AuthView: View {
 6. **Error handling is comprehensive** with user-friendly messages and recovery options
 `;
 
+// iOS Tab UI Flow - Navigation structure for all tabs
+const IOS_TAB_UI_FLOW = `
+## Pasabayan iOS — Tab UI Flow Diagrams
+
+This document provides UI flow diagrams for each tab (Shipper and Carrier), with clear view names and navigation paths.
+
+---
+
+## Shipper Dashboard Flow
+
+\`\`\`
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        ShipperDashboardContent (TabView)                         │
+│  Pasabayan/Views/Screens/Dashboard/DashboardComponents/ShipperDashboardContent.swift │
+└─────────────────────────────────────────────────────────────────────────────────┘
+         │
+         ├── [0] Home ──────────┬── [1] Matches ─────┬── [2] Packages ───┬── [3] Messages ───┬── [4] Profile
+         │                      │                    │                   │                    │
+         ▼                      ▼                    ▼                   ▼                    ▼
+\`\`\`
+
+---
+
+## Tab Summary Reference
+
+### Shipper Tabs
+
+| Index | Tab | Root View | Key Child Views |
+|-------|-----|-----------|-----------------|
+| 0 | Home | ShipperHomeContent | UserHeaderCard, SearchSection, ShipperBrowseContent, TripCardView |
+| 1 | Matches | ShipperMatchesView | ShipperMatchFilterSection, ShipperMatchCard, ShipperMatchDetailsView |
+| 2 | Packages | ShipperPackagesContent | PackageFilterSection, PackageRequestCard, CreateOptionsSheet |
+| 3 | Messages | ConversationsView | ConversationRow, ConversationDetailView |
+| 4 | Profile | ProfileView | UserProfileHeader, RoleSwitcherSection, AccountMenuSection, PaymentsMenuSection |
+
+### Carrier Tabs
+
+| Index | Tab | Root View | Key Child Views |
+|-------|-----|-----------|-----------------|
+| 0 | Home | CarrierHomeContent | UserHeaderCard, SearchSection, CarrierBrowseContent, CarrierPackageCard |
+| 1 | Matches | CarrierBookingsContent | BookingFilterSection, BookingCard, BookingDetailsView, CarrierMatchDetailsView |
+| 2 | My Trips | CarrierTripsContent | TripFilterSection, TripCard, TripCreationView, TripDetailsView |
+| 3 | Messages | ConversationsView | ConversationRow, ConversationDetailView |
+| 4 | Profile | ProfileView | UserProfileHeader, RoleSwitcherSection, CarrierStatusCard, PayoutSetupView |
+
+---
+
+## Shipper Tab 0: Home
+
+**Root:** ShipperHomeContent
+**File:** Pasabayan/Views/Screens/Dashboard/DashboardComponents/ShipperHomeContent.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph SHIPPER_HOME["Tab 0 - Home"]
+        A[ShipperHomeContent]
+        B[ShipperDashboardView]
+        A --> B
+        B --> C[UserHeaderCard]
+        B --> D[SearchSection]
+        B --> E[FilterControls]
+        B --> F["Popular Routes / Recent Searches"]
+        B --> G[ShipperBrowseContent]
+        B --> QA[QuickActionsCard]
+        B --> RA[ActiveDeliveriesPreview]
+
+        G --> H[LoadingStateView]
+        G --> I[ErrorView]
+        G --> J[EmptyStateView]
+        G --> K["TripCardView list"]
+
+        D --> MS[FilterSheet]
+        A --> LS[BookingSheet]
+
+        K --> K1[TripDetailsView]
+        K --> K2[MatchCreationView]
+        K --> K3[UserProfilePopover]
+        QA --> Q1[PackageRequestView]
+        RA --> R1[ShipperMatchDetailsView]
+    end
+\`\`\`
+
+| View | File | Type |
+|------|------|------|
+| ShipperHomeContent | ShipperHomeContent.swift | Root |
+| ShipperDashboardView | ShipperHomeContent.swift | Container |
+| UserHeaderCard | UserHeaderCard.swift | Component |
+| ShipperBrowseContent | ShipperHomeContent.swift | Content |
+| TripCardView | BrowseTripsView.swift | Card |
+| FilterSheet | FilterSheet.swift | Sheet |
+| BookingSheet | BrowseTripsView.swift | Sheet |
+| TripDetailsView | TripDetailsView.swift | Sheet |
+| MatchCreationView | — | Sheet |
+| UserProfilePopover | — | Sheet |
+| PackageRequestView | PackageRequestView.swift | Sheet (from QuickActionsCard) |
+| ShipperMatchDetailsView | ShipperMatchDetailsView.swift | Sheet (from ActiveDeliveriesPreview) |
+
+---
+
+## Shipper Tab 1: Matches
+
+**Root:** ShipperMatchesView
+**File:** Pasabayan/Features/Bookings/Views/Shipper/ShipperMatchesView.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph SHIPPER_MATCHES["Tab 1 - Matches"]
+        A[ShipperMatchesView]
+        B[NavigationView]
+        A --> B
+        B --> C[ShipperMatchFilterSection]
+        B --> D[ShipperMatchesListSection]
+
+        D --> E[LoadingMatchesStateView]
+        D --> F[EmptyMatchesStateView]
+        D --> G["ShipperMatchCard list"]
+
+        G --> HV["View Details"]
+        G --> IX["3-dot menu actions"]
+    end
+
+    HV --> H1[ShipperMatchDetailsView]
+    H1 --> H2[PaymentButton]
+    H1 --> H3[GeneratePickupCodeView]
+    H1 --> H4[GenerateDeliveryCodeView]
+    H1 --> H5[ReceiptDetailView]
+    H1 --> H6[RateDeliverySheet]
+    H1 --> H7[CounterOfferPromptView]
+    H1 --> H8[SupportTicketForm]
+
+    G --> G1[UserProfilePopover]
+    G --> G2[LiveDeliveryTrackingView]
+
+    IX --> I1["Accept, Decline, Counter Offer"]
+\`\`\`
+
+| View | File | Type |
+|------|------|------|
+| ShipperMatchesView | ShipperMatchesView.swift | Root |
+| ShipperMatchFilterSection | ShipperMatchesView.swift | Filter |
+| ShipperMatchCard | ShipperMatchCard.swift | Card |
+| ShipperMatchDetailsView | ShipperMatchDetailsView.swift | Detail (sheet) |
+| GeneratePickupCodeView | GeneratePickupCodeView.swift | Sheet |
+| GenerateDeliveryCodeView | GenerateDeliveryCodeView.swift | Sheet |
+| ReceiptDetailView | — | Sheet |
+| RateDeliverySheet | — | Sheet |
+| CounterOfferPromptView | — | Sheet |
+| UserProfilePopover | — | Sheet (from ShipperMatchCard) |
+| LiveDeliveryTrackingView | LiveDeliveryTrackingView.swift | Sheet (from ShipperMatchCard) |
+
+---
+
+## Shipper Tab 2: Packages
+
+**Root:** ShipperPackagesContent
+**File:** Pasabayan/Views/Screens/Dashboard/DashboardComponents/ShipperPackagesContent.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph SHIPPER_PACKAGES["Tab 2 - Packages"]
+        A[ShipperPackagesContent]
+        B[NavigationView]
+        A --> B
+        B --> C[PackageFilterSection]
+        B --> D[PackagesListSection]
+        B --> E["Floating CREATE button"]
+
+        D --> F[LoadingPackagesStateView]
+        D --> G[PackageTutorialOverlay]
+        D --> H[EmptyPackagesStateView]
+        D --> IX[PackagesScrollView]
+        IX --> J["PackageRequestCard list"]
+
+        E --> K[CreateOptionsSheet]
+        K --> L[PackageRequestView]
+        K --> M[CreateServiceRequestView]
+
+        J --> O[CompatibleTripsView]
+        J --> P[PackageDetailView]
+        J --> Q[ShipperMatchDetailsView]
+        J --> R[RateDeliverySheet]
+    end
+
+    P --> P1[EditPackageSheet]
+    P --> P2[GeneratePickupCodeView]
+    P --> P3[PaymentButton]
+    P --> P4[ConversationDetailView]
+\`\`\`
+
+| View | File | Type |
+|------|------|------|
+| ShipperPackagesContent | ShipperPackagesContent.swift | Root |
+| PackageFilterSection | ShipperPackagesContent.swift | Filter |
+| PackageRequestCard | PackageRequestCard.swift | Card |
+| CreateOptionsSheet | CreateOptionsSheet.swift | Sheet |
+| PackageRequestView | PackageRequestView.swift | Sheet |
+| CreateServiceRequestView | CreateServiceRequestView.swift | Sheet |
+| CompatibleTripsView | CompatibleTripsView.swift | Sheet |
+| EditPackageSheet | EditPackageSheet.swift | Sheet |
+| PackageDetailView | PackageDetailView.swift | Sheet |
+| ShipperMatchDetailsView | ShipperMatchDetailsView.swift | Sheet (from PackageRequestCard when has match) |
+| RateDeliverySheet | — | Sheet (from PackageRequestCard) |
+
+---
+
+## Shipper Tab 3: Messages (Shared)
+
+**Root:** ConversationsView
+**File:** Pasabayan/Features/Chat/ConversationsView.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph MESSAGES["Tab 3 - Messages"]
+        A[ConversationsView]
+        B[NavigationView]
+        A --> B
+        B --> C["Header Row"]
+        B --> D[Content]
+        D --> E[LoadingStateView]
+        D --> F[ErrorView]
+        D --> G[EmptyStateView]
+        D --> H[ConversationList]
+        H --> I[ConversationRow]
+
+        I --> J[ConversationDetailView]
+    end
+
+    J --> K1[MessageList]
+    J --> K2[MessageComposer]
+    J --> K3[MatchDetailsSheet]
+\`\`\`
+
+---
+
+## Shipper Tab 4: Profile (Shared)
+
+**Root:** ProfileView
+**File:** Pasabayan/Features/Profile/Views/ProfileView.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph PROFILE["Tab 4 - Profile"]
+        A[ProfileView]
+        B[NavigationView]
+        A --> B
+        B --> C[UserProfileHeader]
+        B --> D[RoleSwitcherSection]
+        B --> E[ProfileStatsSection]
+        B --> F[VerificationStatusView]
+        B --> GA[AccountMenuSection]
+        B --> HA[PaymentsMenuSection]
+        B --> IA[BookingsMenuSection]
+        B --> J[FavoritesMenuSection]
+        B --> KA[FeedbackMenuSection]
+        B --> LA[SupportMenuSection]
+        B --> M[ProfileActionsSection]
+
+        GA --> G1[EditUserProfileSheet]
+        GA --> G2[VerificationStatusView]
+        GA --> G3[EditCarrierProfileSheet]
+        HA --> HA1[PaymentMethodsView]
+        HA --> HA2[TransactionHistoryView]
+        HA --> HA3[ReceiptListView]
+        HA --> HA4[PayoutSetupView]
+        IA --> IA1[MatchListView]
+        IA --> IA2[DeliveryHistoryView]
+        KA --> KA1[PendingReviewsView]
+        KA --> KA2[UserRatingsView]
+        LA --> LA1[HelpCenterView]
+        LA --> LA2[SettingsView]
+    end
+
+    HA2 --> TXND[TransactionDetailView]
+    TXND --> TXND1[RefundSheetView]
+    TXND --> TXND2[TipSelectionView]
+\`\`\`
+
+| View | File | Type |
+|------|------|------|
+| ProfileView | ProfileView.swift | Root |
+| UserProfileHeader | UserProfileHeader.swift | Header |
+| RoleSwitcherSection | RoleSwitcherSection.swift | Section |
+| EditUserProfileSheet | EditUserProfileSheet.swift | Sheet |
+| VerificationStatusView | VerificationStatusView.swift | Sheet |
+| EditCarrierProfileSheet | EditCarrierProfileSheet.swift | Sheet |
+| PlaceholderView | — | Sheet (Shipping Addresses) |
+| PaymentMethodsView | — | Sheet |
+| TransactionHistoryView | TransactionHistoryView.swift | Sheet |
+| TransactionDetailView | TransactionDetailView.swift | Child (from TransactionHistoryView) |
+| RefundSheetView | RefundSheetView.swift | Sheet (from TransactionDetailView) |
+| TipSelectionView | — | Sheet (from TransactionDetailView) |
+| ReceiptListView | — | Sheet |
+| PayoutSetupView | — | Sheet |
+| HelpCenterView | — | Sheet |
+| SettingsView | SettingsView.swift | Sheet |
+| TermsAndPrivacyView | — | Sheet |
+| PendingReviewsView | PendingReviewsView.swift | Sheet (FeedbackMenuSection) |
+| UserRatingsView | — | Sheet (FeedbackMenuSection) |
+
+---
+
+# Carrier Dashboard Flow
+
+\`\`\`
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        CarrierDashboardContent (TabView)                         │
+│  Pasabayan/Views/Screens/Dashboard/DashboardComponents/CarrierDashboardContent.swift │
+└─────────────────────────────────────────────────────────────────────────────────┘
+         │
+         ├── [0] Home ──────────┬── [1] Matches ─────┬── [2] My Trips ───┬── [3] Messages ───┬── [4] Profile
+         │                      │                    │                   │                    │
+         ▼                      ▼                    ▼                   ▼                    ▼
+\`\`\`
+
+---
+
+## Carrier Tab 0: Home
+
+**Root:** CarrierHomeContent
+**File:** Pasabayan/Views/Screens/Dashboard/DashboardComponents/CarrierHomeContent.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph CARRIER_HOME["Tab 0 - Home"]
+        A[CarrierHomeContent]
+        B[CarrierDashboardView]
+        A --> B
+        B --> C[UserHeaderCard]
+        B --> D[SearchSection]
+        B --> E["Popular Routes / Recent Searches"]
+        B --> F[CarrierBrowseContent]
+
+        F --> G["Loading, Error, Empty states"]
+        F --> H["CarrierPackageCard list"]
+
+        D --> IX[PackageFiltersSheet]
+        H --> JX[RequestToCarrySheet]
+        H --> KX[CarrierPackageDetailSheet]
+        H --> LX[UserProfilePopover]
+
+        A --> MX[TripCreationView]
+        A --> NX[BookingDetailsView]
+
+        JX --> J1[CreateTripFromPackageView]
+        JX --> J2[EditTripSheet]
+    end
+\`\`\`
+
+| View | File | Type |
+|------|------|------|
+| CarrierHomeContent | CarrierHomeContent.swift | Root |
+| CarrierDashboardView | CarrierHomeContent.swift | Container |
+| CarrierBrowseContent | CarrierHomeContent.swift | Content |
+| CarrierPackageCard | CarrierPackageCard.swift | Card |
+| PackageFiltersSheet | PackageFiltersSheet.swift | Sheet |
+| RequestToCarrySheet | RequestToCarrySheet.swift | Sheet |
+| CarrierPackageDetailSheet | — | Sheet |
+| UserProfilePopover | — | Sheet (from CarrierPackageCard) |
+| CreateTripFromPackageView | CreateTripFromPackageView.swift | Sheet (from RequestToCarrySheet) |
+| EditTripSheet | EditTripSheet.swift | Sheet (from RequestToCarrySheet) |
+| TripCreationView | TripCreationView.swift | Sheet (CarrierQuickActionsCard) |
+| BookingDetailsView | BookingDetailsView.swift | Sheet (Quick Actions / notifications) |
+| RateDeliverySheet | — | Sheet |
+
+---
+
+## Carrier Tab 1: Matches
+
+**Root:** CarrierBookingsContent → BookingListView
+**File:** CarrierBookingsContent.swift → BookingListView.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph CARRIER_MATCHES["Tab 1 - Matches"]
+        A[CarrierBookingsContent]
+        B[BookingListView]
+        A --> B
+        B --> C[BookingFilterSection]
+        B --> D[BookingsListSection]
+
+        D --> E[LoadingBookingsStateView]
+        D --> F[EmptyBookingsStateView]
+        D --> G["BookingCard list"]
+
+        G --> HV[BookingDetailsView]
+        G --> IV[CarrierMatchDetailsView]
+        G --> JV[UserProfilePopover]
+    end
+
+    HV --> HV1[BookingPickupCodeView]
+    HV --> HV2[BookingDeliveryCodeView]
+    HV --> HV3[LiveDeliveryTrackingView]
+    HV --> HV4[LiabilityWaiverSheet]
+    HV --> HV5[RateDeliverySheet]
+    HV --> HV6[CounterOfferPromptView]
+    HV --> HV7[ConversationDetailView]
+
+    IV --> IV1[GeneratePickupCodeView]
+    IV --> IV2[ConfirmDeliveryCodeView]
+    IV --> IV3[ReceiptUploadView]
+    IV --> IV4[ReceiptDetailView]
+    IV --> IV5[AutoChargeConfirmationSheet]
+\`\`\`
+
+| View | File | Type |
+|------|------|------|
+| CarrierBookingsContent | CarrierBookingsContent.swift | Root |
+| BookingListView | BookingListView.swift | List |
+| BookingFilterSection | BookingListView.swift | Filter |
+| BookingCard | BookingCard.swift | Card |
+| BookingDetailsView | BookingDetailsView.swift | Detail (sheet) |
+| CarrierMatchDetailsView | CarrierMatchDetailsView.swift | Detail (sheet) |
+| BookingPickupCodeView | — | Sheet |
+| BookingDeliveryCodeView | — | Sheet |
+| LiveDeliveryTrackingView | LiveDeliveryTrackingView.swift | Sheet |
+| LiabilityWaiverSheet | — | Sheet |
+| GeneratePickupCodeView | GeneratePickupCodeView.swift | Sheet |
+| GenerateDeliveryCodeView | GenerateDeliveryCodeView.swift | Sheet |
+| ConfirmDeliveryCodeView | — | Sheet |
+| ReceiptUploadView | — | Sheet |
+| ReceiptViewerView | — | Sheet |
+| ReceiptDetailView | — | Sheet |
+| AutoChargeConfirmationSheet | — | Sheet |
+| UserProfilePopover | — | Sheet (from BookingCard) |
+
+---
+
+## Carrier Tab 2: My Trips
+
+**Root:** CarrierTripsContent
+**File:** Pasabayan/Views/Screens/Dashboard/DashboardComponents/CarrierTripsContent.swift
+
+\`\`\`mermaid
+flowchart TB
+    subgraph CARRIER_TRIPS["Tab 2 - My Trips"]
+        A[CarrierTripsContent]
+        B[NavigationView]
+        A --> B
+        B --> C[VStack]
+        B --> D["Floating CREATE button"]
+
+        C --> E[TripFilterSection]
+        C --> F[TripsListSection]
+
+        F --> G[LoadingStateView]
+        F --> H[TripTutorialOverlay]
+        F --> I[EmptyTripsStateView]
+        F --> J[TripsScrollView]
+        J --> K["TripCard list"]
+
+        D --> L[TripCreationView]
+        K --> M[TripDetailsView]
+        K --> N[EditTripSheet]
+        K --> O[TripStatusUpdateSheet]
+        K --> P[CompatiblePackagesForTripView]
+    end
+
+    M --> M1[EditTripSheet]
+    M --> M2[MatchCreationView]
+    M --> M3[ConversationDetailView]
+\`\`\`
+
+| View | File | Type |
+|------|------|------|
+| CarrierTripsContent | CarrierTripsContent.swift | Root |
+| TripFilterSection | TripFilterSection.swift | Filter |
+| TripCard | TripCard.swift | Card |
+| TripCreationView | TripCreationView.swift | Sheet |
+| TripDetailsView | TripDetailsView.swift | Sheet |
+| EditTripSheet | EditTripSheet.swift | Sheet |
+| TripTutorialOverlay | TripTutorialOverlay.swift | Overlay |
+
+---
+
+## Global Overlays (Both Dashboards)
+
+| Overlay | Trigger | Presents |
+|---------|---------|----------|
+| Notification bell | Top-right button | ComprehensiveNotificationsView |
+| Payment failed | Push notification | Alert + PaymentMethodsView |
+
+### ComprehensiveNotificationsView — Nested Sheets
+
+| Trigger (notification tap) | Sheet |
+|----------------------------|-------|
+| Carrier requests | CarrierRequestsView |
+| Shipper matches | ShipperMatchesView |
+| Ready for pickup packages | PackageListView |
+| Pending reviews | PendingReviewsView |
+| Messages | ConversationsView |
+| Payment methods | PaymentMethodsView |
+| Transaction history | TransactionHistoryView |
+| Phone verification | PhoneVerificationFlowView |
+| Premium verification | PremiumVerificationView |
+
+---
+
+# Detailed Booking Flow Diagrams
+
+## Request to Carry Flow (Carrier → Package)
+
+**Entry Point:** Carrier taps a package card on the Home tab
+**File:** Pasabayan/Features/Bookings/Views/Carrier/RequestToCarrySheet.swift
+
+This flow allows a **Carrier** to request to carry a **Shipper's package** using one of their existing trips.
+
+\`\`\`mermaid
+flowchart TB
+    subgraph REQUEST_TO_CARRY["Request to Carry Flow"]
+        A[CarrierPackageCard] -->|"Tap 'Request to Carry'"| B[RequestToCarrySheet]
+
+        B --> C[shipperInfoSection]
+        B --> D[packageSummarySection]
+        B --> E[tripSelectionSection]
+        B --> F[pricingSection]
+        B --> G[messageSection]
+        B --> H[submitButton]
+
+        E -->|"No eligible trips"| I[CreateTripFromPackageView]
+        E -->|"Select trip"| J[TripSelectionCard]
+        J -->|"Tap 'Update'"| K[EditTripSheet]
+
+        H -->|"checkMatchForTripPackage API"| L{Match Check}
+        L -->|"canCreateNew = true"| M[matchStatusCard - Availability]
+        L -->|"matchExists = true"| N[matchStatusCard - Existing Request]
+        L -->|"canCreateNew = false"| O[matchStatusCard - Cannot Create]
+
+        M -->|"Send Request"| P[requestToCarryPackage API]
+        P -->|"Success"| Q[Success Alert → Dismiss]
+        P -->|"Failure"| R[Error Alert]
+    end
+
+    I --> I1[TripCreationFormState]
+    I --> I2[Route Pre-filled from Package]
+    I --> I3[Weight/Space Pre-filled]
+    I --> I4[Price Input Required]
+
+    K --> K1[Update Trip Details]
+    K --> K2[Refresh Eligible Trips]
+\`\`\`
+
+### Request to Carry - View Components
+
+| View/Section | Purpose | Key State |
+|--------------|---------|-----------|
+| shipperInfoSection | Displays shipper avatar, name, verification, rating | packageRequest.shipper |
+| packageSummarySection | Route, weight, type, dates, budget, urgency | packageRequest |
+| tripSelectionSection | Lists carrier's eligible trips for this package | eligibleTrips, selectedTrip |
+| TripSelectionCard | Individual trip card with select/update actions | trip, isSelected |
+| pricingSection | Shows trip rate and estimated earnings | computedAgreedPrice(for:) |
+| messageSection | Optional message to shipper (500 char limit) | message, messageError |
+| matchStatusCard | Real-time compatibility/existing match status | matchCheckData |
+| submitButton | Send request (disabled when invalid) | canSendRequest, isLoading |
+
+### Request to Carry - Eligibility Logic
+
+Trip eligibility criteria (isEligibleTrip):
+1. Trip status == .planning OR .active
+2. Trip available weight >= package weight
+3. Route matches (origin/destination city & country)
+4. Schedule matches (departure >= pickup, arrival <= delivery deadline)
+
+### Request to Carry - API Flow
+
+| Step | API Call | Purpose |
+|------|----------|---------|
+| 1 | getCompatibleTrips(packageId, carrierId) | Get backend-filtered compatible trips |
+| 2 | checkMatchForTripPackage(tripId, packageId) | Check for existing request/match |
+| 3 | requestToCarryPackage(packageId, tripId, price, message) | Submit the request |
+
+---
+
+## Send Request to Book Trip Flow (Shipper → Trip)
+
+**Entry Point:** Shipper taps "Request to Book" on a trip card
+**File:** Pasabayan/Features/Bookings/Views/Carrier/MatchCreationView.swift
+
+This flow allows a **Shipper** to request to book space on a **Carrier's trip** for their package.
+
+\`\`\`mermaid
+flowchart TB
+    subgraph SEND_TO_BOOK["Send Request to Book Trip Flow"]
+        A[TripCardView] -->|"Menu → 'Request to Book'"| B[MatchCreationView]
+
+        B --> C[packageSelectionSection]
+        B --> D[createPackageSection]
+        B --> E[priceSection]
+        B --> F[messageSection]
+        B --> G[actionSection]
+
+        C -->|"No packages"| H[Empty State]
+        C -->|"Has packages"| I[Package Selection Button]
+        I -->|"Tap"| J[PackagePickerView]
+        J -->|"Select package"| K[Show Package Details]
+
+        D -->|"Create for this trip"| L[PackageRequestView]
+        L -->|"Pre-filled with trip data"| M[Package Created]
+        M -->|"Auto-select new package"| K
+
+        E --> N[Price Input + Validation]
+        N -->|"Below minimum"| O[Validation Error]
+        N -->|"Valid price"| P[Price Accepted]
+
+        G -->|"Send Request"| Q[createMatch API]
+        Q -->|"Success"| R[Success Alert → Dismiss]
+        Q -->|"Failure"| S[Error Section]
+    end
+
+    J --> J1[List of Pending Packages]
+    J --> J2[Package Details Preview]
+    J --> J3[Checkmark Selection]
+
+    L --> L1[Route filled from Trip]
+    L --> L2[Dates Pre-filled]
+    L --> L3[Flexible Pickup = true]
+\`\`\`
+
+### Send to Book Trip - View Components
+
+| View/Section | Purpose | Key State |
+|--------------|---------|-----------|
+| packageSelectionSection | Select from existing packages or show empty state | selectedPackageId |
+| PackagePickerView | Sheet listing all pending packages for selection | packages, selectedPackageId |
+| createPackageSection | Button to create new package pre-filled with trip data | showingPrefillPackageSheet |
+| PackageRequestView | Full package creation form (pre-filled) | packagePrefillData |
+| priceSection | Enter offered price with minimum validation | agreedPrice, priceValidationError |
+| messageSection | Optional note to carrier (500 char limit) | matchMessage |
+| actionSection | Send Request button (disabled when invalid) | isFormValid |
+
+### Send to Book Trip - Pre-fill Logic
+
+When creating a package from this flow, the following fields are pre-filled from the trip:
+
+| Package Field | Trip Source |
+|---------------|-------------|
+| pickupCity | trip.originCity |
+| pickupCountry | trip.originCountry |
+| deliveryCity | trip.destinationCity |
+| deliveryCountry | trip.destinationCountry |
+| pickupAddress | trip.pickupAddress |
+| deliveryAddress | trip.dropoffAddress |
+| preferredPickupDate | trip.departureDate |
+| preferredDeliveryDate | trip.arrivalDate |
+| pickupDateFlexible | true (default) |
+
+---
+
+## Create Trip from Package Flow (Carrier)
+
+**Entry Point:** Carrier taps "Create Matching Trip" in RequestToCarrySheet when no eligible trips exist
+**Files:**
+- View: Pasabayan/Features/Trips/Views/CreateTripFromPackageView.swift
+- ViewModel: Pasabayan/Features/Trips/ViewModels/CreateTripFromPackageViewModel.swift
+
+This flow allows a **Carrier** to create a new trip pre-filled with data from a **Shipper's package** they want to carry.
+
+\`\`\`mermaid
+flowchart TB
+    subgraph CREATE_TRIP_FROM_PACKAGE["Create Trip from Package Flow"]
+        A[RequestToCarrySheet] -->|"No eligible trips"| B["Create Matching Trip Button"]
+        B --> C[CreateTripFromPackageView]
+
+        C --> D{Loading State}
+        D -->|"isLoading = true"| E[loadingView - ProgressView]
+        D -->|"Template loaded"| F[tripFormView]
+        D -->|"Error"| G[errorPlaceholderView]
+        D -->|"Has compatible trip"| H[requestToCarryPlaceholderView]
+
+        E -->|"getTripTemplate API"| I{API Response}
+        I -->|"Success"| F
+        I -->|"'has compatible trips' error"| H
+        I -->|"Other error"| G
+
+        F --> J[requirementsPrompt - Sticky Banner]
+        F --> K[Accordion Sections]
+
+        K --> K1["📦 Package Details (read-only)"]
+        K --> K2["🗺️ Route Information (read-only)"]
+        K --> K3["📅 Schedule (editable)"]
+        K --> K4["⚖️ Available Capacity (editable)"]
+        K --> K5["💰 Pricing (editable, REQUIRED)"]
+        K --> K6["🚗 Transportation Method (editable)"]
+        K --> K7["📝 Additional Notes (editable)"]
+        K --> K8[submitButton]
+
+        J --> J1["4 requirement chips: Route ✓, Weight ✓, Price ?, Dates ✓"]
+
+        K8 -->|"Validate & Create"| L{Validation}
+        L -->|"Invalid schedule"| M[Error Alert]
+        L -->|"Invalid price"| M
+        L -->|"Valid"| N[createTrip]
+
+        N --> O{Creation Result}
+        O -->|"Success"| P[Success Alert → Dismiss]
+        O -->|"Failure"| M
+
+        H -->|"Tap 'Request to Carry'"| Q[Dismiss → Return to RequestToCarrySheet]
+        G -->|"Tap 'Try Again'"| E
+    end
+
+    P --> P1["Trip created in planning mode"]
+    P --> P2["User must activate in 'My Trips'"]
+\`\`\`
+
+### Create Trip from Package - Pre-fill Logic
+
+| Trip Field | Source | Editable |
+|------------|--------|----------|
+| Origin City/Country | template.originCity/Country | No (read-only) |
+| Destination City/Country | template.destinationCity/Country | No (read-only) |
+| Departure Date/Time | template.departureDate (clamped to future) | Yes |
+| Arrival Date/Time | template.arrivalDate (clamped after departure) | Yes |
+| Available Weight | template.availableWeightKg | Yes |
+| Available Space | template.availableSpaceLiters | Yes |
+| Price | **Empty** (user must enter) | Yes (required) |
+| Transportation Method | template.transportationMethod | Yes |
+| Special Notes | Empty | Yes |
+
+### Create Trip from Package - Validation Rules
+
+Schedule validation:
+1. Departure must be at least 5 minutes from now
+2. Arrival must be after departure
+3. For same-day land trips: arrival must be >20 minutes after departure
+
+Price validation:
+1. Price must be a valid number
+2. Price must be greater than 0
+
+### Create Trip from Package - Pricing Behavior
+
+| Transport Type | Price Field Label | Price Interpretation |
+|----------------|-------------------|----------------------|
+| Land (car, bus, truck, van, motorcycle) | "Enter your flat price" | flatTripPrice |
+| Air/Sea (flight, ship, train) | "Enter your price per kg" | pricePerKg |
+
+---
+
+## Flow Comparison Summary
+
+| Aspect | Request to Carry | Send to Book Trip |
+|--------|------------------|-------------------|
+| **Initiator** | Carrier | Shipper |
+| **Target** | Shipper's Package | Carrier's Trip |
+| **Entry Point** | CarrierPackageCard | TripCardView |
+| **Main Sheet** | RequestToCarrySheet | MatchCreationView |
+| **Selection** | Select from carrier's trips | Select from shipper's packages |
+| **Creation Option** | Create trip from package template | Create package from trip template |
+| **Price Source** | Computed from trip pricing | Manual input with minimum validation |
+| **API Endpoint** | requestToCarryPackage | createMatch |
+| **Match Status Check** | Yes (before submit) | No (handled by backend) |
+
+---
+
+# Audit Note
+
+This document was audited against the codebase to include **all** .sheet() and .fullScreenCover() presentations reachable from each tab. Coverage includes:
+
+- Root tab views and their direct sheets
+- Child component sheets (cards, rows, sections)
+- Nested sheets (e.g. PackageDetailView → EditPackageSheet, TransactionDetailView → RefundSheetView)
+- Dashboard-level overlays (notifications, payment alerts)
+`;
+
+// Laravel API Architecture - Backend system internals
+const LARAVEL_API_ARCHITECTURE = `
+## Pasabayan Laravel API Architecture
+
+### System Overview
+
+Pasabayan is a peer-to-peer delivery marketplace that connects travelers (carriers) with people who need items delivered (shippers). The system handles the complete lifecycle from matching to payment settlement.
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Clients["Mobile Apps (iOS)"]
+        iOS["Carrier & Shipper interfaces"]
+    end
+
+    subgraph API["Laravel API Server"]
+        Controllers["Controllers<br/>(Request handling)"]
+        Services["Services<br/>(Business logic)"]
+        Models["Models<br/>(Eloquent ORM)"]
+        Events["Events"]
+        Listeners["Listeners<br/>(Auto-release, etc)"]
+    end
+
+    subgraph Storage["Data Layer"]
+        PostgreSQL[(PostgreSQL)]
+        Redis[(Redis)]
+    end
+
+    subgraph External["External Services"]
+        Stripe["Stripe<br/>(Payments)"]
+        Firebase["Firebase<br/>(Push)"]
+        Twilio["Twilio<br/>(SMS)"]
+    end
+
+    iOS -->|REST API| Controllers
+    Controllers --> Services
+    Services --> Models
+    Services --> Events
+    Events --> Listeners
+    Models --> PostgreSQL
+    Services --> Redis
+    Services --> External
+\`\`\`
+
+### Architecture Layers
+
+#### 1. API Layer (Controllers)
+
+Controllers handle HTTP requests, validation, and response formatting.
+
+| Controller | Purpose |
+|------------|---------|
+| PaymentController | Payment operations |
+| ChatController | Real-time messaging |
+| CarrierTripController | Trip management |
+| PackageRequestController | Package management |
+| MatchController | Match lifecycle |
+| RatingController | Rating system |
+
+#### 2. Business Layer (Services)
+
+Services contain business logic, orchestrate operations, and handle external integrations.
+
+| Service | Purpose |
+|---------|---------|
+| PaymentService | Payment orchestration |
+| MatchLifecycleService | Match state machine |
+| NotificationTriggerService | Notification events (push + email) |
+| EmailNotificationService | Optional email notifications |
+| PushNotificationService | FCM/APNS |
+| DistanceService | Geo calculations |
+
+**Payment Gateway Abstraction:**
+\`\`\`typescript
+interface PaymentGatewayContract {
+    createPaymentIntent(data): array;
+    capturePayment(intentId): array;
+    createPayout(accountId, amount): array;
+    refund(paymentId, amount?): array;
+}
+// Implementations: StripePaymentGateway (production), MockStripePaymentGateway (testing)
+\`\`\`
+
+#### 3. Data Layer (Models)
+
+| Model | Lines | Purpose |
+|-------|-------|---------|
+| User | 616 | Core user entity |
+| CarrierTrip | 626 | Trip entity |
+| PackageRequest | 350 | Package entity |
+| DeliveryMatch | 656 | Match entity |
+| Transaction | 299 | Payment entity |
+
+### Core Domain Model
+
+\`\`\`mermaid
+erDiagram
+    User ||--o{ CarrierTrip : "creates (as carrier)"
+    User ||--o{ PackageRequest : "creates (as shipper)"
+    CarrierTrip ||--o{ DeliveryMatch : "matched to"
+    PackageRequest ||--o{ DeliveryMatch : "matched to"
+    DeliveryMatch ||--|| Transaction : "has payment"
+    DeliveryMatch ||--o{ Chat : "has messages"
+    DeliveryMatch ||--o{ Rating : "receives"
+
+    User {
+        int id PK
+        string name
+        string email
+        string phone
+    }
+
+    CarrierTrip {
+        int id PK
+        int carrier_id FK
+        string origin
+        string destination
+        datetime departure
+    }
+
+    PackageRequest {
+        int id PK
+        int shipper_id FK
+        string pickup_address
+        string delivery_address
+        decimal max_price
+    }
+
+    DeliveryMatch {
+        int id PK
+        int trip_id FK
+        int package_id FK
+        string status
+        decimal agreed_price
+    }
+
+    Transaction {
+        int id PK
+        int match_id FK
+        string status
+        decimal amount
+    }
+\`\`\`
+
+### Match State Machine
+
+\`\`\`mermaid
+stateDiagram-v2
+    [*] --> PENDING: Match created
+
+    PENDING --> CONFIRMED: Both accept
+    PENDING --> DECLINED: Either declines
+    PENDING --> CANCELLED: Either cancels
+
+    CONFIRMED --> PAID: Payment captured
+
+    PAID --> PICKED_UP: Pickup verification code
+
+    PICKED_UP --> IN_TRANSIT: Carrier departs
+
+    IN_TRANSIT --> DELIVERED: Delivery verification code
+
+    DELIVERED --> [*]: Payment auto-released to carrier
+
+    CANCELLED --> [*]
+    DECLINED --> [*]
+\`\`\`
+
+### Payment Architecture
+
+#### Escrow Flow
+
+\`\`\`mermaid
+sequenceDiagram
+    participant S as Shipper
+    participant API as Laravel API
+    participant Stripe
+    participant C as Carrier
+
+    Note over S,C: 1. Match Accepted
+    S->>API: Initiate Payment
+    API->>Stripe: Create PaymentIntent
+    Stripe-->>API: clientSecret
+    API-->>S: PaymentSheet data
+
+    S->>Stripe: Complete Payment
+    Stripe-->>API: Webhook: payment_intent.succeeded
+    API->>API: Transaction: pending → captured
+
+    Note over S,C: 2. Delivery Completed
+    C->>API: Enter delivery code
+    API->>API: Match: delivered
+    API->>Stripe: Create Transfer to Connect Account
+    Stripe-->>C: Funds available
+    API->>API: Transaction: completed
+\`\`\`
+
+### Authentication Flow
+
+\`\`\`mermaid
+sequenceDiagram
+    participant App as Mobile App
+    participant API as Laravel API
+    participant OAuth as OAuth Provider (Google/FB)
+
+    App->>OAuth: 1. Request OAuth token
+    OAuth-->>App: 2. Return access_token
+    App->>API: 3. POST /auth/google/login {access_token}
+    API->>OAuth: 4. Verify token
+    OAuth-->>API: 5. User info
+    API->>API: 6. Create/find user, generate Sanctum token
+    API-->>App: 7. Return Sanctum token
+
+    Note over App,API: Subsequent requests
+    App->>API: Authorization: Bearer {sanctum_token}
+\`\`\`
+
+### Middleware Stack
+
+\`\`\`mermaid
+flowchart TB
+    Request["HTTP Request"] --> CORS
+    CORS --> DDoS["DDoS Protection<br/>(Rate limit per IP)"]
+    DDoS --> RateLimit["Rate Limiting<br/>(API rate limits)"]
+    RateLimit --> Sanitize["Sanitize Input<br/>(XSS prevention)"]
+    Sanitize --> Validate["Input Validation"]
+    Validate --> Auth["auth:sanctum<br/>(Authentication)"]
+    Auth --> Controller["Controller"]
+\`\`\`
+
+### Event-Driven Architecture
+
+| Event | Listener | Action |
+|-------|----------|--------|
+| DeliveryCompleted | AutoReleasePayment | Triggers payment release |
+| ChatMessageCreated | SendChatNotification | Triggers push notification |
+| MatchStatusChanged | Various | Triggers notifications |
+
+### Notification System
+
+\`\`\`mermaid
+flowchart LR
+    Event["Business Event<br/>(e.g., pickup)"] --> Trigger["NotificationTriggerService<br/>(Determines recipients)"]
+    Trigger --> Template["NotificationTemplateService<br/>(Formats message)"]
+    Template --> Push["PushNotificationService<br/>(FCM/APNS)"]
+    Template --> Email["EmailNotificationService<br/>(Optional)"]
+    Push --> DB[(notifications table)]
+    Email --> SMTP["SendGrid/SMTP"]
+\`\`\`
+
+### External Service Integrations
+
+| Service | Purpose | Config Location |
+|---------|---------|-----------------|
+| Stripe | Payments, Connect | config/services.php |
+| Twilio | SMS OTP | config/services.php |
+| Firebase | Push notifications | config/services.php |
+| Google OAuth | Authentication | config/services.php |
+| Facebook OAuth | Authentication | config/services.php |
+| SendGrid/SMTP | Email notifications | config/mail.php |
+
+### Testing Architecture
+
+| Component | Location | Description |
+|-----------|----------|-------------|
+| Feature Tests | tests/Feature/ | Integration tests (40+ files) |
+| Unit Tests | tests/Unit/ | Service & model tests |
+| Test Database | - | SQLite in-memory |
+| Payment Gateway | - | MockStripePaymentGateway auto-bound |
+| Queue | - | Sync driver |
+| Mail | - | Array driver |
+
+### Admin Panel (Filament)
+
+| Component | Purpose |
+|-----------|---------|
+| Resources (24+) | CRUD for Users, Matches, Transactions, etc. |
+| Dashboard | Stats overview, payment metrics |
+| DatabaseManagement | Custom admin pages |
+
+### File Storage
+
+| Path | Content |
+|------|---------|
+| storage/app/public/profile-pictures/ | User avatars |
+| storage/app/public/package-images/ | Package photos |
+| storage/app/public/verification-documents/ | ID verification |
+| storage/app/public/receipts/ | Payment receipts |
+| storage/app/private/crash-reports/ | Error logs |
+
+### Caching Strategy
+
+| Data | Storage | TTL |
+|------|---------|-----|
+| Location Search | Redis | 15 min |
+| Popular Routes | Redis | 1 hour |
+| User Stats | Redis | 5 min |
+| Config Settings | File | - |
+`;
+
 // QA Testing Guide - Payment flows, test cards, test scenarios
 const QA_TESTING_GUIDE = `
 ## Payment Process Flow & QA Testing Guide
@@ -2940,6 +4003,81 @@ Carrier Receives:              $52.50 CAD
 
 Platform Revenue:              $ 7.50 CAD (10% + 5% of base)
 \`\`\`
+
+---
+
+### Payment UI Data Flow
+
+This diagram shows how payment data flows from config through the UI:
+
+\`\`\`mermaid
+flowchart TD
+    subgraph Config["Config Source"]
+        A["GET /api/payments/config"]
+    end
+
+    subgraph StripeConfigService["StripeConfigService"]
+        B["senderFeePercentage (default 10%)"]
+        C["carrierFeePercentage (default 5%)"]
+        D["totalToPay (base + fee)"]
+        E["serviceFeeAmount"]
+        F["carrierReceives"]
+    end
+
+    subgraph PrePayment["Pre-Payment Display"]
+        G["PaymentSummaryCard"]
+        H["Pay button amount"]
+    end
+
+    subgraph CreatePayment["Create Payment"]
+        I["POST /api/payments"]
+        J["Body: amount = agreed_price"]
+    end
+
+    subgraph PostPayment["Post-Payment API Response"]
+        K["amounts.total (shipper pays)"]
+        L["amounts.carrier_receives"]
+        M["amounts.base_amount"]
+        N["amounts.platform_fee"]
+    end
+
+    subgraph Display["Post-Payment Display"]
+        O["PaymentSummaryCard"]
+        P["TransactionDetailView"]
+        Q["Receipt display"]
+    end
+
+    A --> B
+    A --> C
+    B --> D
+    B --> E
+    C --> F
+    D --> G
+    D --> H
+    E --> G
+    F --> G
+
+    I --> J
+    J --> K
+    J --> L
+    J --> M
+    J --> N
+
+    K --> O
+    L --> O
+    M --> O
+    N --> O
+    K --> P
+    L --> P
+    K --> Q
+    L --> Q
+\`\`\`
+
+**Key Points:**
+- **Pre-payment:** Fees calculated client-side using \`StripeConfigService\` percentages
+- **Payment creation:** Only base amount sent to API
+- **Post-payment:** Full breakdown returned from API for display consistency
+- **All displays** (summary, detail, receipt) use the same API response data
 
 ---
 
@@ -4901,6 +6039,7 @@ ${COMPANY_INFO}
 ${APP_USER_GUIDE}
 ${BUSINESS_LOGIC_GUIDE}
 ${BUSINESS_SYSTEM_OVERVIEW}
+${LARAVEL_API_ARCHITECTURE}
 
 You help the support team look up users, check delivery statuses, view transactions, and analyze platform metrics.
 You can also help users understand how to use the Pasabayan app.
@@ -4922,6 +6061,12 @@ When asked about payments:
 For platform analytics:
 - Use get_platform_stats for overall metrics
 - Use get_popular_routes for route analytics
+
+When support staff need technical context:
+- Explain the match state machine and valid transitions
+- Describe the payment escrow flow
+- Explain the notification system
+- Use mermaid diagrams to visualize complex flows
 
 Always be helpful, accurate, and concise. Format responses with markdown for readability.
 If you cannot find information, say so clearly and suggest alternative approaches.`;
@@ -4957,14 +6102,19 @@ const DEVELOPER_SYSTEM_PROMPT = `You are a Pasabayan developer assistant helping
 ${COMPANY_INFO}
 ${DEVELOPER_API_REFERENCE}
 ${IOS_DATA_FLOW_ARCHITECTURE}
+${IOS_TAB_UI_FLOW}
+${LARAVEL_API_ARCHITECTURE}
 
-You help developers understand and integrate with the Pasabayan API and iOS architecture. You have full knowledge of:
+You help developers understand and integrate with the Pasabayan API, Laravel backend, and iOS architecture. You have full knowledge of:
 - All API endpoints (REST)
 - Request/response formats
 - Authentication (Sanctum Bearer tokens)
 - Error handling
 - Rate limits
 - Webhooks
+- Laravel backend architecture (Controllers, Services, Models, Events)
+- Payment system (Stripe integration, escrow flow)
+- Notification system (Push + Email)
 - iOS app architecture (MVVM + Functional Programming)
 - SwiftUI data flow patterns
 - ViewModel state management
@@ -5000,6 +6150,19 @@ When developers ask about specific iOS features:
 - Explain the data flow for that feature
 - Show example implementations
 
+When developers ask about iOS navigation structure:
+- Show the tab hierarchy (Shipper vs Carrier tabs)
+- Explain navigation from root views through sheets
+- Provide exact file paths for views
+- Use mermaid diagrams to visualize navigation flows
+
+When developers ask about Laravel backend:
+- Explain the architecture layers (Controllers → Services → Models)
+- Describe the event-driven patterns (Events → Listeners)
+- Show the payment escrow flow
+- Explain the notification pipeline
+- Use mermaid diagrams to visualize system flows
+
 Always be precise and technical. Use code blocks for endpoints, JSON examples, and Swift code.
 Format responses with markdown for readability. Use mermaid diagrams when explaining flows.`;
 
@@ -5007,11 +6170,13 @@ const QA_SYSTEM_PROMPT = `You are a Pasabayan QA assistant helping testers valid
 ${COMPANY_INFO}
 ${APP_USER_GUIDE}
 ${QA_TESTING_GUIDE}
+${IOS_TAB_UI_FLOW}
 
-You help QA testers understand how to test the Pasabayan app, especially payment flows. You have full knowledge of:
+You help QA testers understand how to test the Pasabayan app, especially payment flows and UI navigation. You have full knowledge of:
 - Payment flow (shipper payments, carrier payouts)
 - Transaction status transitions
 - Stripe test cards and their behaviors
+- iOS app tab structure and navigation paths
 - Test scenarios and expected results
 - Edge cases and error handling
 - Debug logging and what to look for
@@ -5035,6 +6200,12 @@ When testers ask about debugging:
 - Explain what logs to look for
 - Describe how to verify correct behavior
 - Help interpret error messages
+
+When testers ask about UI navigation:
+- Show the tab structure for Shipper or Carrier mode
+- Explain navigation paths from root views to child sheets
+- Provide view file names for code reference
+- Use mermaid diagrams to visualize navigation flows
 
 Always be precise and helpful. Use tables and code blocks for clarity.
 No authentication is required - QA testers can access this mode freely.`;

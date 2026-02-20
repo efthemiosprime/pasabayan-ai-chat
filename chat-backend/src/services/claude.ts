@@ -124,6 +124,40 @@ const APP_USER_GUIDE = `
 #### Rating Your Carrier
 After delivery, rate your experience (1-5 stars) and leave feedback.
 
+### Counter-Offer Flow
+
+When a price doesn't work for you, either party can send a counter-offer to negotiate.
+
+#### How Carriers Send a Counter-Offer
+1. Switch to **Carrier** role via Profile tab → role switcher.
+2. Go to the **Matches** tab (second tab, delivery icon).
+3. Find the booking card for the match.
+4. Tap the **action menu** (three dots) on the booking card.
+5. Select **"Counter Offer"**.
+6. Enter your proposed price and tap **Submit**.
+7. The sender will receive a push notification with your counter-offer.
+
+#### How Senders Send a Counter-Offer
+1. Switch to **Sender** role via Profile tab → role switcher.
+2. Go to the **Matches** tab (second tab, delivery icon).
+3. Open the match detail screen for an existing carrier offer.
+4. Tap **"Decline"** on the carrier's offer.
+5. A prompt appears asking if you'd like to submit a counter-offer.
+6. Enter your price and tap **Submit**.
+7. The carrier will receive a push notification with your counter-offer.
+
+#### Receiving a Counter-Offer
+- You'll get a **push notification** — tap it to go directly to the match details.
+- If you miss the notification, go to **Matches** tab and find the match with the counter-offer indicator.
+- A **Counter-Offer Banner** at the top of the match details shows: the new proposed price, the original price, and the price difference.
+- From there you can **Accept** or **Decline** the counter-offer.
+
+#### Counter-Offer Rules
+- Max **2 counter-offers** per negotiation.
+- When the limit is reached, the Counter Offer button is hidden.
+- The UI shows "Counter-offer limit reached."
+- Remaining counter-offers appear in the counter-offer status banner.
+
 ### Shipper Home Tab Structure
 
 **Tab Index:** 0 | **Title:** Home | **Root View:** \`ShipperHomeContent\`
@@ -1565,19 +1599,53 @@ The connection between a package request and a trip when they're compatible.
 
 #### 4. Counter-Offer System
 
-When a request is declined, either party can make a counter-offer:
+When a price doesn't work, either party can send a counter-offer to negotiate.
 
 | Scenario | Who Declines | Counter-Offer Option |
 |----------|--------------|---------------------|
 | Shipper requests trip | Carrier declines | Carrier can propose a different price |
 | Carrier offers to carry | Shipper declines | Shipper can propose a different price |
 
-**Counter-Offer Flow:**
-1. User declines a request/offer
-2. System prompts: "Would you like to make a counter-offer?"
-3. User enters new price and optional message
-4. Other party receives notification with new price
-5. Other party can: Accept, Decline, or Counter-Offer back
+**Flow 1: Carrier sends a counter-offer → Sender sees it**
+
+As the Carrier:
+1. Switch to **Carrier** role (Profile tab → role switcher).
+2. Go to **Matches** tab (second tab, delivery icon).
+3. Find the booking card for the match.
+4. Tap the **action menu** (three dots) on the card.
+5. Select **"Counter Offer"**.
+6. Enter a new price and tap **Submit**.
+
+As the Sender:
+1. Switch to **Sender** role (Profile tab → role switcher).
+2. Receive a **push notification** for the counter-offer.
+3. Tap the notification to go to the match details screen.
+   - Alternative: **Matches** tab → find match with counter-offer indicator → tap to open.
+4. **Counter-Offer Banner** appears showing: new price, original price, and difference.
+5. **Accept** or **Decline** the counter-offer.
+
+**Flow 2: Sender sends a counter-offer → Carrier sees it**
+
+As the Sender:
+1. Switch to **Sender** role (Profile tab → role switcher).
+2. Go to **Matches** tab (second tab, delivery icon).
+3. Open the match detail screen for a carrier offer.
+4. Tap **"Decline"** on the carrier's offer.
+5. A prompt asks if you'd like to submit a counter-offer with your own price.
+6. Enter your price and tap **Submit**.
+
+As the Carrier:
+1. Switch to **Carrier** role (Profile tab → role switcher).
+2. Receive a **push notification** for the counter-offer.
+3. Tap the notification to go to the match details screen.
+   - Alternative: **Matches** tab → find match with counter-offer indicator → tap to open.
+4. **Counter-Offer Banner** appears showing: new price, original price, and difference.
+5. **Accept** or **Decline** the counter-offer.
+
+**Counter-Offer Rules:**
+- Max **2 counter-offers** per negotiation.
+- When limit reached, Counter Offer button is hidden and UI shows "Counter-offer limit reached."
+- Remaining counter-offers appear in the counter-offer status banner.
 
 **Example Negotiation:**
 - Round 1: Shipper offers $50
@@ -5993,6 +6061,256 @@ Use Admin Panel **Counter-Offer Test** to create:
 - Remaining count displays when provided.
 - Limit reached hides counter-offer and shows the limit message.
 - Decline does **not** auto-open counter-offer prompt.
+
+---
+
+## Counter-Offer End-to-End QA Guide
+
+> **Prerequisite:** You need two test accounts — one acting as Carrier, one acting as Sender — with an existing match between them.
+
+### Flow 1: Carrier sends a counter-offer → Sender sees it
+
+**As the Carrier:**
+1. Make sure you are on the **Carrier** role. If not, go to the **Profile** tab (last tab) and use the **role switcher** in the profile header to switch to **Carrier**.
+2. Tap the **Matches** tab (second tab, delivery icon).
+3. Find the booking card for the existing match with the Sender.
+4. Tap the **action menu** (three dots or action button) on the booking card.
+5. Select **"Counter Offer"**.
+6. A prompt appears asking you to enter your proposed price.
+7. Enter a new price and tap **Submit**.
+
+**As the Sender:**
+1. Make sure you are on the **Sender** role. If not, go to the **Profile** tab (last tab) and use the **role switcher** to switch to **Sender**.
+2. You should receive a **push notification** for the counter-offer.
+3. Tap the notification — it should take you directly to the match details screen.
+   - **Alternative path (no notification):** Tap the **Matches** tab (second tab, delivery icon) → find the match with the counter-offer indicator → tap to open.
+4. At the top of the match details screen, a **Counter-Offer Banner** should appear showing:
+   - The new proposed price
+   - The original price
+   - The price difference
+5. From here you can **Accept** or **Decline** the counter-offer.
+
+---
+
+### Flow 2: Sender sends a counter-offer → Carrier sees it
+
+**As the Sender:**
+1. Make sure you are on the **Sender** role. If not, go to the **Profile** tab (last tab) and use the **role switcher** to switch to **Sender**.
+2. Tap the **Matches** tab (second tab, delivery icon).
+3. Open the match detail screen for an existing carrier offer.
+4. Tap **"Decline"** on the carrier's offer.
+5. A prompt appears asking if you'd like to submit a counter-offer with your own price.
+6. Enter your price and tap **Submit**.
+
+**As the Carrier:**
+1. Make sure you are on the **Carrier** role. If not, go to the **Profile** tab (last tab) and use the **role switcher** to switch to **Carrier**.
+2. You should receive a **push notification** for the counter-offer.
+3. Tap the notification — it should take you directly to the match details screen.
+   - **Alternative path (no notification):** Tap the **Matches** tab (second tab, delivery icon) → find the match with the counter-offer indicator → tap to open.
+4. On the match details screen (or booking details screen), a **Counter-Offer Banner** should appear showing:
+   - The new proposed price
+   - The original price
+   - The price difference
+5. From here you can **Accept** or **Decline** the counter-offer.
+
+---
+
+### What to verify
+- Counter-offer banner displays the correct prices (new, original, difference)
+- Tapping the notification navigates to the correct match detail screen
+- Navigating manually via **Matches** tab also shows the counter-offer context
+- Accept and Decline buttons on the banner work as expected
+- If the notification is missing price data, the banner should still appear using the match's saved price info as a fallback
+- Role switcher correctly changes between Sender and Carrier dashboards
+
+---
+
+## Carrier Initiation QA Guide (All Entry Points)
+
+This guide validates request initiation from both supported UI entry points:
+- Carrier flow: \`Request to Carry\`
+- Shipper flow: \`Find Carriers\` -> \`Request to Book\`
+
+Goal: confirm both entry points produce correct UI state, validation behavior, and downstream match status updates.
+
+### Entry Points Under Test
+
+| Entry Point | Role | Primary UI Path | Core Screen |
+|-------------|------|-----------------|-------------|
+| Request to Carry | Carrier | Carrier Home -> Browse Packages -> Package card action | \`RequestToCarrySheet\` |
+| Request to Carry (trip-first) | Carrier | Carrier Trips -> Trip details -> Compatible Packages | \`CompatiblePackagesForTripView\` |
+| Find Carriers | Shipper | Shipper Packages -> Package card action \`Find Carriers\` | \`CompatibleTripsView\` |
+
+### Test Data Prerequisites
+
+- Carrier account with at least one trip.
+- Shipper account with at least one \`open\` package request (non-service type).
+- Route/date-compatible carrier trip + package pair.
+- One scenario with incompatible or non-active trip.
+- One scenario where request already exists for the same package+trip pair.
+
+---
+
+### A. Carrier-Initiated: Request to Carry
+
+#### A1. Open Request To Carry from Browse Packages
+
+1. Switch to Carrier role.
+2. Open Carrier Home and browse package list.
+3. Tap package action to open \`Request to Carry\`.
+
+**Expected:**
+- Request sheet opens with package summary.
+- Trip selection and send CTA are visible.
+
+#### A2. No Eligible Trips State
+
+1. Use carrier account with no eligible trips.
+2. Open \`Request to Carry\`.
+
+**Expected:**
+- Empty state is shown.
+- \`Create Matching Trip\` button is visible.
+
+#### A3. Create Matching Trip Requires Active Status Before Send
+
+1. In empty state, tap \`Create Matching Trip\`.
+2. Create trip with status not active (for example \`planning\`).
+3. Return to request sheet and select that trip.
+
+**Expected:**
+- \`Send Request to Carry\` is disabled.
+- Hint appears: \`Set this trip status to Active before sending a request.\`
+- After trip status update to \`Active\`, send button becomes enabled.
+
+#### A4. Successful Send
+
+1. Select active eligible trip.
+2. Optionally enter message.
+3. Tap \`Send Request to Carry\`.
+
+**Expected:**
+- Success alert or status banner appears.
+- Request is not duplicated on repeated taps during loading.
+- Parent package list refreshes.
+
+#### A5. Duplicate Request Prevention
+
+1. Re-open same package and same trip where request already exists.
+2. Attempt to send again.
+
+**Expected:**
+- UI shows existing-request status or conflict message.
+- New request is blocked.
+
+#### A6. Inactive/Unavailable Trip Error Handling
+
+1. Attempt send with trip that becomes invalid/unavailable.
+
+**Expected:**
+- User-friendly alert shown.
+- If backend returns trip status conflict, UI message is actionable.
+
+---
+
+### B. Shipper Entry Point: Find Carriers -> Request to Book
+
+#### B1. Open Find Carriers from Package Card
+
+1. Switch to Shipper role.
+2. Open Packages tab.
+3. For an open package, tap \`Find Carriers\`.
+
+**Expected:**
+- Compatible trips view opens.
+- List shows carrier trips or empty state.
+
+#### B2. Send Request to Book (Default Price Path)
+
+1. On compatible trip card, tap \`Request to Book\`.
+2. Confirm send.
+
+**Expected:**
+- Confirmation alert appears before send.
+- Success alert/banner after send.
+- Package request state updates to pending/requested.
+
+#### B3. Manual Price Entry Path (Budget Fallback)
+
+1. Use case where flow asks for manual offered price.
+2. Enter valid price within budget.
+3. Continue and send request.
+
+**Expected:**
+- \`Enter Offered Price\` sheet appears.
+- Request is sent with entered offered price.
+
+#### B4. Over-Budget Validation
+
+1. In manual price sheet, enter price above package budget.
+2. Tap Continue.
+
+**Expected:**
+- \`Over Budget\` alert appears.
+- Request is not sent.
+
+#### B5. Duplicate Request Prevention
+
+1. Attempt request again for trip+package that already has request.
+
+**Expected:**
+- \`Request Already Exists\` (or equivalent) shown.
+- Send is blocked.
+
+#### B6. Request Failure UX
+
+1. Simulate network/server failure.
+
+**Expected:**
+- \`Request Failed\` alert shown.
+- Message is specific (network timeout, unauthorized, conflict, not found, etc.).
+
+---
+
+### C. Cross-Flow Assertions (Both Entry Points)
+
+After either flow sends a request:
+
+1. Verify status appears in Matches for both users.
+2. Verify notification appears for recipient user.
+3. Verify no duplicate cards/status corruption for same pair.
+4. Verify counter-offer/negotiation banner appears when backend flags negotiation.
+
+---
+
+### D. Quick Regression Matrix
+
+| Area | Request to Carry | Find Carriers |
+|------|------------------|---------------|
+| Entry button visible | Yes | Yes |
+| Eligibility gating | Yes | Yes |
+| Existing request lockout | Yes | Yes |
+| Price validation | Trip-derived and active trip checks | Budget + manual price checks |
+| Success feedback | Alert/banner | Alert/banner |
+| Error feedback | Alert with actionable message | Alert with actionable message |
+
+---
+
+### E. Useful UI Test Hooks
+
+- \`Package.Card.<id>.FindCarriersButton\`
+- \`CompatibleTrips.RequestButton.<tripId>\`
+- \`CompatibleTrips.PriceEntry.Sheet\`
+- \`CompatibleTrips.PriceEntry.Input\`
+- \`CompatibleTrips.PriceEntry.Continue\`
+- \`RequestToCarryHarness.Title\` (harness)
+- \`RequestToCarryHarness.SendCount\` (harness)
+- \`CompatibleTripsHarness.Title\` (harness)
+- \`CompatibleTripsHarness.SendCount\` (harness)
+
+Use harness tests for fast validation of critical edge cases:
+- \`PasabayanUITests/Flows/Carrier/Home/RequestToCarryFlowHarnessTests.swift\`
+- \`PasabayanUITests/Flows/Shipper/Packages/Sheets/CompatibleTripsFlowHarnessTests.swift\`
 
 ---
 

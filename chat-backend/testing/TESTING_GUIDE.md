@@ -1301,6 +1301,83 @@
 
 ---
 
+### Test Case 7.7: Counter-Offer — Carrier Sends, Sender Receives
+**Objective**: Verify carrier can send a counter-offer and sender sees it with banner
+
+**Prerequisites**: Two test accounts (Carrier + Sender) with an existing match
+
+**Steps**:
+
+As the Carrier:
+1. Switch to **Carrier** role (Profile tab → role switcher)
+2. Tap the **Matches** tab (second tab, delivery icon)
+3. Find the booking card for the existing match with the Sender
+4. Tap the **action menu** (three dots) on the booking card
+5. Select **"Counter Offer"**
+6. Enter a new price and tap **Submit**
+
+As the Sender:
+1. Switch to **Sender** role (Profile tab → role switcher)
+2. Check for **push notification** for the counter-offer
+3. Tap the notification — should navigate to the match details screen
+   - Alternative: **Matches** tab → find match with counter-offer indicator → tap to open
+4. Verify **Counter-Offer Banner** at top of match details
+5. Try **Accept** and **Decline** buttons
+
+**Expected Results**:
+- ✅ Counter-offer submits successfully with success message
+- ✅ Sender receives push notification with counter-offer details
+- ✅ Tapping notification navigates to correct match detail screen
+- ✅ Counter-Offer Banner shows: new proposed price, original price, price difference
+- ✅ Accept and Decline buttons on banner work as expected
+- ✅ Navigating manually via Matches tab also shows counter-offer context
+
+**Error Cases**:
+- ❌ Notification missing — banner should still appear using match's saved price info as fallback
+- ❌ Counter-offer limit reached — "Counter Offer" option should be hidden/disabled
+- ❌ Role switcher doesn't correctly change dashboard view
+
+---
+
+### Test Case 7.8: Counter-Offer — Sender Sends, Carrier Receives
+**Objective**: Verify sender can send a counter-offer via decline flow and carrier sees it
+
+**Prerequisites**: Two test accounts (Carrier + Sender) with an existing carrier offer
+
+**Steps**:
+
+As the Sender:
+1. Switch to **Sender** role (Profile tab → role switcher)
+2. Tap the **Matches** tab (second tab, delivery icon)
+3. Open the match detail screen for an existing carrier offer
+4. Tap **"Decline"** on the carrier's offer
+5. A prompt appears asking to submit a counter-offer with own price
+6. Enter your price and tap **Submit**
+
+As the Carrier:
+1. Switch to **Carrier** role (Profile tab → role switcher)
+2. Check for **push notification** for the counter-offer
+3. Tap the notification — should navigate to the match details screen
+   - Alternative: **Matches** tab → find match with counter-offer indicator → tap to open
+4. Verify **Counter-Offer Banner** on match/booking details screen
+5. Try **Accept** and **Decline** buttons
+
+**Expected Results**:
+- ✅ Decline triggers counter-offer prompt
+- ✅ Counter-offer submits successfully
+- ✅ Carrier receives push notification with counter-offer details
+- ✅ Tapping notification navigates to correct match detail screen
+- ✅ Counter-Offer Banner shows: new proposed price, original price, price difference
+- ✅ Accept and Decline buttons work as expected
+- ✅ Manual navigation via Matches tab shows counter-offer context
+
+**Error Cases**:
+- ❌ Notification missing — banner should still appear using match's saved price info as fallback
+- ❌ Counter-offer limit reached — prompt should not appear after decline
+- ❌ Role switcher doesn't correctly change dashboard view
+
+---
+
 ## 🚚 Delivery Management
 
 ### Test Case 8.1: Pickup Flow (Complete)
@@ -2136,6 +2213,10 @@
 - [ ] Auto-Confirm Workflow (Carrier accepts shipper request)
 - [ ] Auto-Confirm Workflow (Shipper accepts carrier request)
 - [ ] Auto-Confirm Workflow (Carrier accepts package to create match)
+- [ ] Counter-Offer: Carrier sends → Sender receives (Test 7.7)
+- [ ] Counter-Offer: Sender sends → Carrier receives (Test 7.8)
+- [ ] Counter-Offer Banner displays correct prices
+- [ ] Counter-Offer notification navigation
 - [ ] Pickup Code Verification
 - [ ] Delivery Code Verification
 - [ ] Payment Processing
@@ -2206,10 +2287,11 @@ When reporting bugs, please include:
 
 ---
 
-**Last Updated**: October 30, 2025
-**Document Version**: 1.1
+**Last Updated**: February 19, 2026
+**Document Version**: 1.2
 **App Version**: TBD
 
 **Recent Updates**:
+- February 19, 2026: Added counter-offer flow test cases (Test 7.7, 7.8) with push notification and banner verification
 - October 30, 2025: Added auto-confirm workflow test cases (Test 7.4, 7.5, 7.6)
 
